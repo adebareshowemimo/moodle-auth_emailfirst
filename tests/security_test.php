@@ -24,17 +24,13 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace auth_emailfirst\tests;
-
-use advanced_testcase;
-
 /**
  * Test suite for security features.
  *
  * @coversDefaultClass \auth_emailfirst\local\security
  * @covers \auth_emailfirst\local\security
  */
-final class security_test extends advanced_testcase {
+final class security_test extends \advanced_testcase {
     /**
      * Set up test environment.
      */

@@ -101,6 +101,7 @@
                 <label for="country" class="form-label">{{#str}} wheredoyoulive {{/str}}</label>
                 <select class="form-control {{#errors.country}}is-invalid{{/errors.country}}"
                         id="country" name="country" required>
+                    <option value="">{{#str}} choosedots {{/str}}</option>
                     {{#countries}}
                         <option value="{{value}}" {{#selected}}selected{{/selected}}>{{label}}</option>
                     {{/countries}}
