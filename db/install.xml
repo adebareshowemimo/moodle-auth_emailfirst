@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<XMLDB PATH="auth/emailfirst/db" VERSION="2026051001" COMMENT="XMLDB file for auth_emailfirst"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
+>
+  <TABLES>
+    <TABLE NAME="auth_emailfirst_survey" COMMENT="Stores referral source survey responses from signup">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="FK to user.id"/>
+        <FIELD NAME="referral_source" TYPE="text" NOTNULL="true" SEQUENCE="false" COMMENT="How the user heard about the site"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="userid_fk" TYPE="foreign-unique" FIELDS="userid" REFTABLE="user" REFFIELDS="id"/>
+      </KEYS>
+    </TABLE>
+
+    <TABLE NAME="auth_emailfirst_ratelimit" COMMENT="Signup rate limit tracking per IP">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="ip" TYPE="char" LENGTH="45" NOTNULL="true" COMMENT="IPv4 or IPv6 address"/>
+        <FIELD NAME="timeattempt" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" COMMENT="Timestamp of signup attempt"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="ip_time_idx" UNIQUE="false" FIELDS="ip,timeattempt" COMMENT="For efficient rate limit checking"/>
+      </INDEXES>
+    </TABLE>
+
+    <TABLE NAME="auth_emailfirst_security_log" COMMENT="Security events log for audit and analytics">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="event" TYPE="char" LENGTH="50" NOTNULL="true" COMMENT="Event type (recaptcha_failed, rate_limit_exceeded, etc.)"/>
+        <FIELD NAME="ip" TYPE="char" LENGTH="45" NOTNULL="true" COMMENT="IPv4 or IPv6 address of event source"/>
+        <FIELD NAME="timeattempt" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" COMMENT="Timestamp of security event"/>
+        <FIELD NAME="metadata" TYPE="text" NOTNULL="false" COMMENT="Additional event data in JSON format"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="event_time_idx" UNIQUE="false" FIELDS="event,timeattempt" COMMENT="For event analysis queries"/>
+      </INDEXES>
+    </TABLE>
+  </TABLES>
+</XMLDB>

@@ -1,0 +1,116 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template auth_emailfirst/resend_verification
+
+    Resend verification email template.
+
+    @copyright  2026 Course Commerce Pro
+    @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+
+    Context variables:
+    * wwwroot - Site root URL
+    * sitename - Site name
+    * logourl - Logo URL
+    * email - User's email address
+    * sesskey - Session key for form
+    * error - Error message (if any)
+    * emailsent - Whether email was sent successfully
+    * loginurl - Login page URL
+    * signupurl - Signup page URL
+}}
+
+<div class="emailfirst-container" style="max-width: 500px; margin: 2rem auto;">
+    <div class="text-center mb-4">
+        {{#logourl}}
+            <img src="{{{logourl}}}" alt="{{sitename}}" style="max-height: 60px; max-width: 200px;">
+        {{/logourl}}
+        {{^logourl}}
+            <h2>{{sitename}}</h2>
+        {{/logourl}}
+    </div>
+
+    <div class="card border-0">
+        <div class="card-body">
+            {{#emailsent}}
+                <div class="text-center mb-4">
+                    <i class="fa fa-envelope fa-4x text-success mb-3"></i>
+                    <h3>{{#str}}verificationemailsent, auth_emailfirst{{/str}}</h3>
+                </div>
+
+                <div class="alert alert-success">
+                    <p class="mb-0">{{#str}}verificationemailresent_desc, auth_emailfirst{{/str}}</p>
+                    <p class="mb-0"><strong>{{{email}}}</strong></p>
+                </div>
+
+                <p class="text-muted small">{{#str}}verificationemailsent_check, auth_emailfirst{{/str}}</p>
+
+                <div class="mt-4 text-center">
+                    <a href="{{{loginurl}}}" class="btn btn-primary btn-lg w-100">
+                        {{#str}}gotologin, auth_emailfirst{{/str}}
+                    </a>
+                </div>
+            {{/emailsent}}
+
+            {{^emailsent}}
+                <div class="text-center mb-4">
+                    <i class="fa fa-redo fa-3x text-primary mb-3"></i>
+                    <h3>{{#str}}resend_verification, auth_emailfirst{{/str}}</h3>
+                    <p class="text-muted">{{#str}}resend_verification_desc, auth_emailfirst{{/str}}</p>
+                </div>
+
+                {{#error}}
+                    <div class="alert alert-danger">
+                        <i class="fa fa-exclamation-circle"></i> {{{error}}}
+                    </div>
+                {{/error}}
+
+                <form method="post" action="{{{wwwroot}}}/auth/emailfirst/resend_verification.php">
+                    <input type="hidden" name="sesskey" value="{{{sesskey}}}">
+                    <input type="hidden" name="confirm" value="1">
+
+                    <div class="mb-3">
+                        <label for="email" class="form-label">{{#str}}email{{/str}}</label>
+                        <input type="email"
+                               class="form-control form-control-lg"
+                               id="email"
+                               name="email"
+                               value="{{{email}}}"
+                               placeholder="{{#str}}resend_verification_email_help, auth_emailfirst{{/str}}"
+                               required
+                               autofocus>
+                        <div class="form-text">{{#str}}resend_verification_email_help, auth_emailfirst{{/str}}</div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-lg w-100 mb-3">
+                        <i class="fa fa-paper-plane"></i> {{#str}}resend_email_button, auth_emailfirst{{/str}}
+                    </button>
+
+                    <div class="text-center mt-3">
+                        <a href="{{{loginurl}}}">
+                            {{#str}}gotologin, auth_emailfirst{{/str}}
+                        </a>
+                        <span class="mx-2">|</span>
+                        <a href="{{{signupurl}}}">
+                            {{#str}}signup_heading, auth_emailfirst{{/str}}
+                        </a>
+                    </div>
+                </form>
+            {{/emailsent}}
+        </div>
+    </div>
+</div>

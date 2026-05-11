@@ -1,0 +1,230 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template auth_emailfirst/enroll_mfa
+
+    MFA Enrollment Page Template
+
+    @copyright  2026 Course Commerce Pro
+    @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+
+    Context variables:
+    * sitename - Site name
+    * heading - Page heading
+    * content - Main content text
+    * in_grace_period - Whether user is in grace period
+    * grace_until - Formatted date/time when grace period ends
+    * factors - Array of available MFA factors {id, name, description, setup_url}
+    * skip_url - URL to skip MFA enrollment
+}}
+
+<div class="mfa-enrollment-page">
+    <div class="container">
+        <div class="mfa-enrollment-container">
+            <div class="mfa-header">
+                <h1>{{heading}}</h1>
+                <p class="mfa-intro">{{content}}</p>
+            </div>
+
+            {{#factors}}
+                <div class="mfa-factors-section">
+                    <h2 class="mfa-section-heading">{{#str}}mfa_enrollment_available_factors, auth_emailfirst{{/str}}</h2>
+                    <p class="mfa-section-intro">{{#str}}mfa_enrollment_select_method, auth_emailfirst{{/str}}</p>
+
+                    <div class="mfa-factors-grid">
+                        {{#.}}
+                            <div class="mfa-factor-card">
+                                <div class="mfa-factor-header">
+                                    <h3 class="mfa-factor-name">{{name}}</h3>
+                                </div>
+                                <div class="mfa-factor-body">
+                                    <p class="mfa-factor-description">{{description}}</p>
+                                </div>
+                                <div class="mfa-factor-footer">
+                                    <a href="{{setup_url}}" class="btn btn-primary mfa-setup-btn">
+                                        {{#str}}mfa_enrollment_setup, auth_emailfirst{{/str}}
+                                    </a>
+                                </div>
+                            </div>
+                        {{/.}}
+                    </div>
+                </div>
+            {{/factors}}
+
+            {{^factors}}
+                <div class="alert alert-info">
+                    <p>{{#str}}mfa_enrollment_no_factors, auth_emailfirst{{/str}}</p>
+                </div>
+            {{/factors}}
+
+            {{#in_grace_period}}
+                <div class="mfa-grace-period-section">
+                    <div class="alert alert-warning">
+                        <h4>{{#str}}mfa_enrollment_grace_period, auth_emailfirst{{/str}}</h4>
+                        <p>{{#str}}mfa_enrollment_grace_text, auth_emailfirst, {{grace_until}}{{/str}}</p>
+                    </div>
+
+                    <form method="post" class="mfa-skip-form">
+                        {{#sesskey}}{{/sesskey}}
+                        <input type="hidden" name="action" value="skip">
+                        <a href="{{skip_url}}" class="btn btn-secondary mfa-skip-btn">
+                            {{#str}}mfa_enrollment_skip, auth_emailfirst{{/str}}
+                        </a>
+                    </form>
+                </div>
+            {{/in_grace_period}}
+        </div>
+    </div>
+</div>
+
+<style>
+    .mfa-enrollment-page {
+        background-color: #f8f9fa;
+        padding: 40px 0;
+        min-height: 600px;
+        display: flex;
+        align-items: center;
+    }
+
+    .mfa-enrollment-container {
+        background: white;
+        border-radius: 8px;
+        padding: 40px;
+        max-width: 900px;
+        margin: 0 auto;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .mfa-header {
+        text-align: center;
+        margin-bottom: 40px;
+    }
+
+    .mfa-header h1 {
+        font-size: 32px;
+        margin-bottom: 15px;
+        color: #333;
+    }
+
+    .mfa-intro {
+        font-size: 16px;
+        color: #666;
+        margin-bottom: 0;
+    }
+
+    .mfa-factors-section {
+        margin-bottom: 40px;
+    }
+
+    .mfa-section-heading {
+        font-size: 22px;
+        margin-bottom: 10px;
+        color: #333;
+    }
+
+    .mfa-section-intro {
+        color: #666;
+        margin-bottom: 25px;
+    }
+
+    .mfa-factors-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 20px;
+    }
+
+    .mfa-factor-card {
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        overflow: hidden;
+        transition: all 0.2s ease;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .mfa-factor-card:hover {
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        border-color: #007bff;
+    }
+
+    .mfa-factor-header {
+        padding: 20px;
+        background: #f8f9fa;
+        border-bottom: 1px solid #e9ecef;
+    }
+
+    .mfa-factor-name {
+        margin: 0;
+        font-size: 18px;
+        color: #333;
+    }
+
+    .mfa-factor-body {
+        padding: 20px;
+        flex-grow: 1;
+    }
+
+    .mfa-factor-description {
+        margin: 0;
+        color: #666;
+        font-size: 14px;
+        line-height: 1.5;
+    }
+
+    .mfa-factor-footer {
+        padding: 20px;
+        border-top: 1px solid #e9ecef;
+        background: #f8f9fa;
+    }
+
+    .mfa-setup-btn {
+        width: 100%;
+        padding: 10px;
+        font-weight: 500;
+    }
+
+    .mfa-grace-period-section {
+        margin-top: 40px;
+        padding-top: 40px;
+        border-top: 1px solid #e9ecef;
+    }
+
+    .mfa-skip-form {
+        margin-top: 15px;
+    }
+
+    .mfa-skip-btn {
+        width: 100%;
+        padding: 10px;
+        font-weight: 500;
+    }
+
+    @media (max-width: 768px) {
+        .mfa-enrollment-container {
+            padding: 20px;
+        }
+
+        .mfa-header h1 {
+            font-size: 24px;
+        }
+
+        .mfa-factors-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>

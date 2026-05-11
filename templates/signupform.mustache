@@ -1,0 +1,400 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template auth_emailfirst/signupform
+
+    Custom branded signup form for the Email-First Authentication plugin.
+
+    @copyright  2026 Course Commerce Pro
+    @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+
+    Context variables required for this template:
+    * logourl - Logo url (string|false),
+    * logostyle - Inline CSS for logo dimensions,
+    * sitename - Name of the site,
+    * signupheading - Heading text,
+    * signupsubheading - Subheading text,
+    * signupurl - Form action URL,
+    * loginurl - Login page url,
+    * sesskey - Session key for CSRF protection,
+    * email - Pre-filled email value,
+    * email2 - Pre-filled email confirmation value,
+    * firstname - Pre-filled first name,
+    * lastname - Pre-filled last name,
+    * showcitycountry - Whether to show city/country fields,
+    * city - Pre-filled city,
+    * countries - Array of {value, label, selected},
+    * passwordpolicy - Password policy HTML,
+    * showreferralsurvey - Whether to show referral survey,
+    * referral_source - Pre-filled referral source,
+    * showrecaptcha - Whether to show reCAPTCHA,
+    * recaptchav3 - Whether reCAPTCHA version is v3 (invisible),
+    * recaptchahtml - reCAPTCHA HTML (for v2 checkbox only),
+    * sitepolicyhtml - Site policy HTML,
+    * hasidentityproviders - Flag for identity providers,
+    * identityproviders - Array of {url, iconurl, name},
+    * errors - Object of field => error message,
+    * haserrors - Boolean flag,
+    * showcontact - Show contact info,
+    * contacttext - Contact text,
+    * multistep - Enable multi-step wizard,
+    * profilefields - Extra profile fields HTML,
+    * pluginfields - Plugin hook fields HTML,
+    * alreadyhaveaccount - Lang string,
+    * showpasswordtoggle - Whether to show the password visibility toggle button
+
+    Example context (json):
+    {
+        "logourl": false,
+        "logostyle": "max-height:80px;",
+        "sitename": "My Site",
+        "signupheading": "Create your account",
+        "signupsubheading": "Welcome!",
+        "signupurl": "/auth/emailfirst/signup.php",
+        "loginurl": "/login/index.php",
+        "sesskey": "abc123",
+        "email": "",
+        "email2": "",
+        "firstname": "",
+        "lastname": "",
+        "showcitycountry": true,
+        "city": "",
+        "countries": [],
+        "passwordpolicy": "",
+        "showreferralsurvey": false,
+        "referral_source": "",
+        "showrecaptcha": false,
+        "recaptchahtml": "",
+        "sitepolicyhtml": "",
+        "hasidentityproviders": false,
+        "identityproviders": [],
+        "errors": {},
+        "haserrors": false,
+        "showcontact": false,
+        "contacttext": "",
+        "multistep": false,
+        "profilefields": "",
+        "pluginfields": "",
+        "alreadyhaveaccount": "Already have an account?"
+    }
+}}
+
+<div class="signupform auth-emailfirst-signupform">
+    <div class="text-center mb-4">
+        {{#logourl}}
+            <div class="signup-logo">
+                <img src="{{logourl}}" class="img-fluid" alt="{{sitename}}" style="{{logostyle}}"/>
+            </div>
+        {{/logourl}}
+        {{#signupheading}}
+            <h2 class="mt-3">{{signupheading}}</h2>
+        {{/signupheading}}
+        {{#signupsubheading}}
+            <p class="text-muted mt-2">{{signupsubheading}}</p>
+        {{/signupsubheading}}
+    </div>
+
+    {{#hasidentityproviders}}
+        <div class="login-identityproviders mb-3">
+            {{#identityproviders}}
+                <a class="btn login-identityprovider-btn btn-outline-secondary btn-lg w-100 mb-2" href="{{url}}">
+                    {{#iconurl}}
+                        <img src="{{iconurl}}" alt="" width="24" height="24"/>
+                    {{/iconurl}}
+                    {{name}}
+                </a>
+            {{/identityproviders}}
+        </div>
+        <div class="login-divider my-3"><hr></div>
+        <div class="text-center text-muted mb-3">
+            <small>{{#str}} loginlocal, auth_emailfirst {{/str}}</small>
+        </div>
+    {{/hasidentityproviders}}
+
+    {{#haserrors}}
+        <div class="alert alert-danger" role="alert">
+            {{#str}} errorwithform, auth_emailfirst {{/str}}
+        </div>
+    {{/haserrors}}
+
+    <form class="signup-form" action="{{signupurl}}" method="post" id="signupform" autocomplete="on">
+        <input type="hidden" name="sesskey" value="{{sesskey}}">
+
+        {{#multistep}}
+            <div id="emailfirst-progress" class="mb-4"></div>
+        {{/multistep}}
+
+        {{! ── Step 1: Email ── }}
+        <fieldset id="id_step_email" {{#multistep}}class="emailfirst-step"{{/multistep}}>
+            {{#multistep}}
+                <legend class="fheader">{{#str}} step_email, auth_emailfirst {{/str}}</legend>
+            {{/multistep}}
+            <div class="mb-3">
+                <label for="signup-email" class="form-label">{{#str}} email {{/str}} <abbr class="text-danger" title="{{#str}}required{{/str}}">*</abbr></label>
+                <input type="email" name="email" id="signup-email"
+                       class="form-control form-control-lg {{#errors.email}}is-invalid{{/errors.email}}"
+                       value="{{email}}" maxlength="100" required autocomplete="email"
+                       placeholder="{{#str}} email {{/str}}">
+                <small class="form-text text-muted">{{#str}} emailisusername, auth_emailfirst {{/str}}</small>
+                {{#errors.email}}
+                    <div class="invalid-feedback d-block">{{errors.email}}</div>
+                {{/errors.email}}
+            </div>
+            <div class="mb-3">
+                <label for="signup-email2" class="form-label">{{#str}} emailagain {{/str}} <abbr class="text-danger" title="{{#str}}required{{/str}}">*</abbr></label>
+                <input type="email" name="email2" id="signup-email2"
+                       class="form-control form-control-lg {{#errors.email2}}is-invalid{{/errors.email2}}"
+                       value="{{email2}}" maxlength="100" required autocomplete="email"
+                       placeholder="{{#str}} emailagain {{/str}}">
+                {{#errors.email2}}
+                    <div class="invalid-feedback d-block">{{errors.email2}}</div>
+                {{/errors.email2}}
+            </div>
+        </fieldset>
+
+        {{! ── Step 2: Name ── }}
+        <fieldset id="id_step_name" {{#multistep}}class="emailfirst-step"{{/multistep}}>
+            {{#multistep}}
+                <legend class="fheader">{{#str}} step_name, auth_emailfirst {{/str}}</legend>
+            {{/multistep}}
+            <div class="mb-3">
+                <label for="signup-firstname" class="form-label">{{#str}} firstname {{/str}} <abbr class="text-danger" title="{{#str}}required{{/str}}">*</abbr></label>
+                <input type="text" name="firstname" id="signup-firstname"
+                       class="form-control form-control-lg {{#errors.firstname}}is-invalid{{/errors.firstname}}"
+                       value="{{firstname}}" maxlength="100" required
+                       placeholder="{{#str}} firstname {{/str}}">
+                {{#errors.firstname}}
+                    <div class="invalid-feedback d-block">{{errors.firstname}}</div>
+                {{/errors.firstname}}
+            </div>
+            <div class="mb-3">
+                <label for="signup-lastname" class="form-label">{{#str}} lastname {{/str}} <abbr class="text-danger" title="{{#str}}required{{/str}}">*</abbr></label>
+                <input type="text" name="lastname" id="signup-lastname"
+                       class="form-control form-control-lg {{#errors.lastname}}is-invalid{{/errors.lastname}}"
+                       value="{{lastname}}" maxlength="100" required
+                       placeholder="{{#str}} lastname {{/str}}">
+                {{#errors.lastname}}
+                    <div class="invalid-feedback d-block">{{errors.lastname}}</div>
+                {{/errors.lastname}}
+            </div>
+        </fieldset>
+
+        {{! ── Step 3: Location (optional) ── }}
+        {{#showcitycountry}}
+            <fieldset id="id_step_location" {{#multistep}}class="emailfirst-step"{{/multistep}}>
+                {{#multistep}}
+                    <legend class="fheader">{{#str}} step_location, auth_emailfirst {{/str}}</legend>
+                {{/multistep}}
+                <div class="mb-3">
+                    <label for="signup-city" class="form-label">{{#str}} city {{/str}}</label>
+                    <input type="text" name="city" id="signup-city"
+                           class="form-control form-control-lg"
+                           value="{{city}}" maxlength="120"
+                           placeholder="{{#str}} city {{/str}}">
+                </div>
+                <div class="mb-3">
+                    <label for="signup-country" class="form-label">{{#str}} country {{/str}}</label>
+                    <select name="country" id="signup-country" class="form-select form-select-lg">
+                        {{#countries}}
+                            <option value="{{value}}" {{#selected}}selected{{/selected}}>{{label}}</option>
+                        {{/countries}}
+                    </select>
+                </div>
+            </fieldset>
+        {{/showcitycountry}}
+
+        {{! ── Step 4: Password ── }}
+        <fieldset id="id_step_password" {{#multistep}}class="emailfirst-step"{{/multistep}}>
+            {{#multistep}}
+                <legend class="fheader">{{#str}} step_password, auth_emailfirst {{/str}}</legend>
+            {{/multistep}}
+            {{#passwordpolicy}}
+                <div class="alert alert-info small">
+                    {{{passwordpolicy}}}
+                </div>
+            {{/passwordpolicy}}
+            <div class="mb-3">
+                <label for="signup-password" class="form-label">{{#str}} password {{/str}} <abbr class="text-danger" title="{{#str}}required{{/str}}">*</abbr></label>
+                {{#showpasswordtoggle}}<div class="input-group">{{/showpasswordtoggle}}
+                <input type="password" name="password" id="signup-password"
+                       class="form-control form-control-lg {{#errors.password}}is-invalid{{/errors.password}}"
+                       maxlength="256" required autocomplete="new-password"
+                       placeholder="{{#str}} password {{/str}}">
+                {{#showpasswordtoggle}}
+                <button type="button" class="btn btn-outline-secondary signup-password-toggle"
+                        id="signup-password-toggle"
+                        aria-label="{{#str}} showpassword, auth_emailfirst {{/str}}"
+                        data-show-label="{{#str}} showpassword, auth_emailfirst {{/str}}"
+                        data-hide-label="{{#str}} hidepassword, auth_emailfirst {{/str}}"
+                        aria-pressed="false">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                         viewBox="0 0 16 16" aria-hidden="true" class="signup-toggle-show-icon">
+                        <path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8M1.173 8a13 13 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5s3.879 1.168 5.168 2.457A13 13 0 0 1 14.828 8q-.086.13-.195.288c-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5s-3.879-1.168-5.168-2.457A13 13 0 0 1 1.172 8z"/>
+                        <path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5M4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0"/>
+                    </svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                         viewBox="0 0 16 16" aria-hidden="true" class="signup-toggle-hide-icon" style="display:none">
+                        <path d="m10.79 12.912-1.614-1.615a3.5 3.5 0 0 1-4.474-4.474l-2.06-2.06C.938 6.278 0 8 0 8s3 5.5 8 5.5a7 7 0 0 0 2.79-.588M5.21 3.088A7 7 0 0 1 8 2.5c5 0 8 5.5 8 5.5s-.939 1.721-2.641 3.238l-2.062-2.062a3.5 3.5 0 0 0-4.474-4.474z"/>
+                        <path d="M5.525 7.646a2.5 2.5 0 0 0 2.829 2.829zm4.95.708-2.829-2.83a2.5 2.5 0 0 1 2.829 2.829zm3.171 6-12-12 .708-.708 12 12z"/>
+                    </svg>
+                </button>
+                </div>
+                {{/showpasswordtoggle}}
+                {{#errors.password}}
+                    <div class="invalid-feedback d-block">{{errors.password}}</div>
+                {{/errors.password}}
+            </div>
+        </fieldset>
+
+        {{! ── Step 5: Final (survey, profile, captcha, policy, submit) ── }}
+        <fieldset id="id_step_final" {{#multistep}}class="emailfirst-step"{{/multistep}}>
+            {{#multistep}}
+                <legend class="fheader">{{#str}} step_final, auth_emailfirst {{/str}}</legend>
+            {{/multistep}}
+
+            {{#showreferralsurvey}}
+                <div class="mb-3">
+                    <label for="signup-referral" class="form-label">
+                        {{#str}} referral_source, auth_emailfirst {{/str}}
+                        <abbr class="text-danger" title="{{#str}}required{{/str}}">*</abbr>
+                    </label>
+                    <select name="referral_source" id="signup-referral"
+                            class="form-select form-select-lg {{#errors.referral_source}}is-invalid{{/errors.referral_source}}"
+                            required>
+                        {{#referral_options}}
+                            <option value="{{value}}" {{#selected}}selected{{/selected}}>{{label}}</option>
+                        {{/referral_options}}
+                    </select>
+                    {{#errors.referral_source}}
+                        <div class="invalid-feedback d-block">{{errors.referral_source}}</div>
+                    {{/errors.referral_source}}
+                </div>
+            {{/showreferralsurvey}}
+
+            {{! Custom profile fields rendered from PHP }}
+            {{#profilefields}}
+                <div class="signup-profile-fields">
+                    {{{profilefields}}}
+                </div>
+            {{/profilefields}}
+
+            {{! Plugin hook fields rendered from PHP }}
+            {{#pluginfields}}
+                <div class="signup-plugin-fields">
+                    {{{pluginfields}}}
+                </div>
+            {{/pluginfields}}
+
+            {{#showrecaptcha}}
+                {{^recaptchav3}}
+                    <div class="mb-3">
+                        {{{recaptchahtml}}}
+                    </div>
+                {{/recaptchav3}}
+                {{! For v3, hidden field is rendered by form; no visible HTML needed }}
+            {{/showrecaptcha}}
+
+            {{#hassitepolicy}}
+                <div class="mb-3 site-policy-agreement">
+                    {{#sitepolicyurl}}
+                        <p>
+                            <a href="{{sitepolicyurl}}" target="_blank">{{sitepolicylinktext}}</a>
+                        </p>
+                    {{/sitepolicyurl}}
+                    <div class="form-check">
+                        <input type="checkbox" class="form-check-input" name="policyagreed"
+                               id="policyagreed" value="1">
+                        <label class="form-check-label" for="policyagreed">
+                            {{sitepolicyacceptlabel}}
+                        </label>
+                    </div>
+                    {{#errors.policyagreed}}
+                        <div class="form-control-feedback invalid-feedback d-block">
+                            {{errors.policyagreed}}
+                        </div>
+                    {{/errors.policyagreed}}
+                </div>
+            {{/hassitepolicy}}
+
+            <div class="signup-form-submit mb-3" id="signup-submit-wrapper">
+                <button class="btn btn-primary btn-lg w-100" type="submit" id="signupbtn">
+                    {{#str}} createaccount {{/str}}
+                </button>
+            </div>
+        </fieldset>
+    </form>
+
+    <div class="auth-emailfirst-login-link text-center mt-3">
+        <span class="text-muted">{{alreadyhaveaccount}}</span>
+        <a href="{{loginurl}}">{{#str}} login {{/str}}</a>
+    </div>
+
+    {{#showcontact}}
+        <div class="auth-emailfirst-contact text-center text-muted mt-4 mb-2">
+            <small>{{contacttext}}</small>
+        </div>
+    {{/showcontact}}
+</div>
+
+{{#js}}
+    require(['core_form/submit'], function(Submit) {
+        Submit.init("signupbtn");
+    });
+    {{#multistep}}
+        require(['auth_emailfirst/signup_steps'], function(Steps) {
+            Steps.init({
+                steps: {{{stepsjson}}},
+                strings: {{{stringsjson}}}
+            });
+        });
+    {{/multistep}}
+    {{#showpasswordtoggle}}
+    (function() {
+        var toggle = document.getElementById('signup-password-toggle');
+        var pwField = document.getElementById('signup-password');
+        if (toggle && pwField) {
+            toggle.addEventListener('click', function() {
+                var showing = pwField.type === 'text';
+                pwField.type = showing ? 'password' : 'text';
+                this.setAttribute('aria-pressed', showing ? 'false' : 'true');
+                this.setAttribute('aria-label', showing ? this.dataset.showLabel : this.dataset.hideLabel);
+                var showIcon = this.querySelector('.signup-toggle-show-icon');
+                var hideIcon = this.querySelector('.signup-toggle-hide-icon');
+                if (showIcon) { showIcon.style.display = showing ? '' : 'none'; }
+                if (hideIcon) { hideIcon.style.display = showing ? 'none' : ''; }
+            });
+        }
+    })();
+    {{/showpasswordtoggle}}
+    {{#hassitepolicy}}
+        // Disable submit button until policy checkbox is checked.
+        (function() {
+            var checkbox = document.getElementById('policyagreed');
+            var submitBtn = document.getElementById('signupbtn');
+            if (checkbox && submitBtn) {
+                // Initial state: disable if not checked.
+                submitBtn.disabled = !checkbox.checked;
+                submitBtn.classList.toggle('disabled', !checkbox.checked);
+                // Listen for changes.
+                checkbox.addEventListener('change', function() {
+                    submitBtn.disabled = !this.checked;
+                    submitBtn.classList.toggle('disabled', !this.checked);
+                });
+            }
+        })();
+    {{/hassitepolicy}}
+{{/js}}

@@ -1,0 +1,186 @@
+/* auth_emailfirst styles */
+
+/* ── Fonts (Work Sans for body, Raleway for headings) ── */
+
+.auth-emailfirst-loginform,
+.auth-emailfirst-loginform p,
+.auth-emailfirst-loginform a,
+.auth-emailfirst-loginform label,
+.auth-emailfirst-loginform input,
+.auth-emailfirst-loginform button,
+.auth-emailfirst-loginform .form-control,
+.auth-emailfirst-signupform,
+.auth-emailfirst-signupform p,
+.auth-emailfirst-signupform a,
+.auth-emailfirst-signupform label,
+.auth-emailfirst-signupform input,
+.auth-emailfirst-signupform button,
+.auth-emailfirst-signupform textarea,
+.auth-emailfirst-signupform select,
+.auth-emailfirst-signupform .form-control,
+.auth-emailfirst-signupform .form-select,
+.signupform,
+.signupform p,
+.signupform a,
+.signupform label,
+.signupform input,
+.signupform button,
+.signupform .form-control {
+    font-family: "Work Sans", sans-serif;
+}
+
+.auth-emailfirst-loginform h1,
+.auth-emailfirst-loginform h2,
+.auth-emailfirst-loginform h3,
+.auth-emailfirst-loginform h4,
+.auth-emailfirst-signupform h1,
+.auth-emailfirst-signupform h2,
+.auth-emailfirst-signupform h3,
+.auth-emailfirst-signupform h4,
+.signupform h1,
+.signupform h2,
+.signupform h3,
+.signupform h4 {
+    font-family: "Raleway", sans-serif;
+    font-weight: 600;
+}
+
+/* Hide the core template "New account" heading — we render it inside the form after the logo. */
+.signupform > h1.login-heading {
+    display: none;
+}
+
+/* Hide the collapse/expand chevron icons on step fieldset headers. */
+.signupform .fheader.icons-collapse-expand {
+    display: none;
+}
+
+.emailfirst-container {
+    max-width: 500px;
+    margin: 2rem auto;
+}
+
+.emailfirst-container .card {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+}
+
+.emailfirst-container .card-body {
+    padding: 2rem;
+}
+
+.emailfirst-container .btn-primary {
+    border-radius: 6px;
+}
+
+.emailfirst-container .form-control-lg {
+    border-radius: 6px;
+}
+
+.emailfirst-verify-container {
+    max-width: 500px;
+    margin: 2rem auto;
+}
+
+.emailfirst-verify-container .card {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+}
+
+/* ── Custom login page ── */
+
+.auth-emailfirst-loginform .login-identityprovider-btn {
+    border-radius: 6px;
+    padding: 0.6rem 1rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.auth-emailfirst-loginform .login-form-submit .btn {
+    border-radius: 6px;
+}
+
+.auth-emailfirst-loginform .form-control-lg {
+    border-radius: 6px;
+}
+
+.auth-emailfirst-loginform .auth-emailfirst-local-heading {
+    font-size: 0.9rem;
+}
+
+/* ── Step navigation buttons ── */
+
+.emailfirst-step-nav {
+    margin-bottom: 1.5rem;
+}
+
+/* ── Login link on signup page ── */
+
+.auth-emailfirst-login-link {
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+/* ── Navbar signup button ── */
+
+.auth-emailfirst-nav-signup {
+    border-radius: 4px;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+/* ── V2 Custom signup form ── */
+
+.auth-emailfirst-signupform {
+    max-width: 500px;
+    margin: 2rem auto;
+}
+
+.auth-emailfirst-signupform .form-control-lg,
+.auth-emailfirst-signupform .form-select-lg {
+    border-radius: 6px;
+}
+
+.auth-emailfirst-signupform .btn-primary {
+    border-radius: 6px;
+}
+
+.auth-emailfirst-signupform .login-identityprovider-btn {
+    border-radius: 6px;
+    padding: 0.6rem 1rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.auth-emailfirst-signupform .login-divider {
+    position: relative;
+    text-align: center;
+}
+
+.auth-emailfirst-signupform .login-divider hr {
+    margin: 0;
+}
+
+.auth-emailfirst-signupform .signup-logo img {
+    display: inline-block;
+}
+
+/* ── Confirmation page (verification sent / account created) ── */
+
+.auth-emailfirst-confirmation .confirmation-icon {
+    line-height: 1;
+}
+
+.auth-emailfirst-confirmation .text-info {
+    color: #0d6efd !important;
+}
+
+.auth-emailfirst-confirmation .text-success {
+    color: #198754 !important;
+}
