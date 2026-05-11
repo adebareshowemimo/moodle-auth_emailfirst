@@ -65,6 +65,8 @@ class behat_auth_emailfirst extends \behat_base {
     /**
      * Attempt signup from specific IP.
      *
+     * @param int $count Number of existing attempts.
+     * @param string $ip IP address.
      * @Given /^I have attempted signup (\d+) times from IP \"([^\"]+)\"$/
      */
     public function attempt_signup_from_ip($count, $ip) {
@@ -82,6 +84,7 @@ class behat_auth_emailfirst extends \behat_base {
     /**
      * Attempt signup again from IP.
      *
+     * @param string $ip IP address.
      * @When /^I attempt to signup again from IP \"([^\"]+)\"$/
      */
     public function attempt_signup_again_from_ip($ip) {
@@ -124,6 +127,7 @@ class behat_auth_emailfirst extends \behat_base {
     /**
      * Verify user exists with email.
      *
+     * @param string $email Email address.
      * @Then /^a new user should exist with email \"([^\"]+)\"$/
      */
     public function user_exists_with_email($email) {
@@ -138,6 +142,7 @@ class behat_auth_emailfirst extends \behat_base {
     /**
      * Verify no user exists with email.
      *
+     * @param string $email Email address.
      * @Then /^no new user should be created with email \"([^\"]+)\"$/
      */
     public function no_user_with_email($email) {
@@ -152,6 +157,7 @@ class behat_auth_emailfirst extends \behat_base {
     /**
      * Create user with email.
      *
+     * @param string $email Email address.
      * @Given /^a user exists with email \"([^\"]+)\"$/
      */
     public function create_user_with_email($email) {
@@ -200,6 +206,7 @@ class behat_auth_emailfirst extends \behat_base {
     /**
      * Verify email sent to user.
      *
+     * @param string $email Email address.
      * @Then /^an email should be sent to \"([^\"]+)\"$/
      */
     public function email_sent_to($email) {
@@ -210,6 +217,7 @@ class behat_auth_emailfirst extends \behat_base {
     /**
      * Verify email contains text.
      *
+     * @param string $text Expected email text.
      * @Then /^the email should contain \"([^\"]+)\"$/
      */
     public function email_contains_text($text) {

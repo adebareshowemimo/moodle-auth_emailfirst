@@ -178,9 +178,140 @@
 }
 
 .auth-emailfirst-confirmation .text-info {
-    color: #0d6efd !important;
+    color: #0d6efd;
 }
 
 .auth-emailfirst-confirmation .text-success {
-    color: #198754 !important;
+    color: #198754;
+}
+
+.mfa-enrollment-page {
+    background-color: #f8f9fa;
+    padding: 40px 0;
+    min-height: 600px;
+    display: flex;
+    align-items: center;
+}
+
+.mfa-enrollment-container {
+    background: white;
+    border-radius: 8px;
+    padding: 40px;
+    max-width: 900px;
+    margin: 0 auto;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.mfa-header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.mfa-header h1 {
+    font-size: 32px;
+    margin-bottom: 15px;
+    color: #333;
+}
+
+.mfa-intro {
+    font-size: 16px;
+    color: #666;
+    margin-bottom: 0;
+}
+
+.mfa-factors-section {
+    margin-bottom: 40px;
+}
+
+.mfa-section-heading {
+    font-size: 22px;
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.mfa-section-intro {
+    color: #666;
+    margin-bottom: 25px;
+}
+
+.mfa-factors-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+.mfa-factor-card {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    overflow: hidden;
+    transition: all 0.2s ease;
+    display: flex;
+    flex-direction: column;
+}
+
+.mfa-factor-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border-color: #007bff;
+}
+
+.mfa-factor-header {
+    padding: 20px;
+    background: #f8f9fa;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.mfa-factor-name {
+    margin: 0;
+    font-size: 18px;
+    color: #333;
+}
+
+.mfa-factor-body {
+    padding: 20px;
+    flex-grow: 1;
+}
+
+.mfa-factor-description {
+    margin: 0;
+    color: #666;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.mfa-factor-footer {
+    padding: 20px;
+    border-top: 1px solid #e9ecef;
+    background: #f8f9fa;
+}
+
+.mfa-setup-btn,
+.mfa-skip-btn {
+    width: 100%;
+    padding: 10px;
+    font-weight: 500;
+}
+
+.mfa-grace-period-section {
+    margin-top: 40px;
+    padding-top: 40px;
+    border-top: 1px solid #e9ecef;
+}
+
+.mfa-skip-form {
+    margin-top: 15px;
+}
+
+@media (max-width: 768px) {
+    .mfa-enrollment-container {
+        padding: 20px;
+    }
+
+    .mfa-header h1 {
+        font-size: 24px;
+    }
+
+    .mfa-factors-grid {
+        grid-template-columns: 1fr;
+    }
 }

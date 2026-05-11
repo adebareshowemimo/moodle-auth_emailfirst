@@ -12,6 +12,7 @@
 define([], function() {
 
 var activeForm = null;
+var feedbackElement = null;
 
 /**
  * Initialize reCAPTCHA v3 for a form.
@@ -58,7 +59,7 @@ var init = function(siteKey, action, threshold) {
 
         // Request token from Google with the specified action.
         if (!window.grecaptcha) {
-            alert('Bot verification failed. Please refresh and try again.');
+            showError('Bot verification failed. Please refresh and try again.');
             if (submitBtn) {
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'Submit';
@@ -77,9 +78,10 @@ var init = function(siteKey, action, threshold) {
                 // Now submit the form (without triggering this handler again).
                 activeForm.removeEventListener('submit', handleFormSubmit);
                 activeForm.submit();
+                return token;
             })
             .catch(function() {
-                alert('Bot verification failed. Please try again.');
+                showError('Bot verification failed. Please try again.');
                 if (submitBtn) {
                     submitBtn.disabled = false;
                     submitBtn.textContent = 'Submit';
@@ -113,6 +115,26 @@ function loadRecaptchaScript(siteKey) {
 
     // Append to head.
     document.head.appendChild(script);
+}
+
+/**
+ * Show reCAPTCHA feedback without using a blocking browser alert.
+ *
+ * @param {string} message User-facing error message.
+ */
+function showError(message) {
+    if (!activeForm) {
+        return;
+    }
+
+    if (!feedbackElement) {
+        feedbackElement = document.createElement('div');
+        feedbackElement.className = 'alert alert-danger';
+        feedbackElement.setAttribute('role', 'alert');
+        activeForm.prepend(feedbackElement);
+    }
+
+    feedbackElement.textContent = message;
 }
 
 return {
