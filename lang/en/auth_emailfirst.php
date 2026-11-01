@@ -292,6 +292,7 @@ $string['signup_email'] = 'Email address';
 $string['signup_email_desc'] = 'Enter your email address to get started';
 $string['signup_heading'] = 'Create your account';
 $string['signupcontact'] = 'Signup contact info';
+$string['signupcontact_default'] = 'Questions? We are happy to help. Contact us at: info@brianhamilton.org';
 $string['signupcontact_desc'] = 'Contact information shown at the bottom of the registration form.';
 $string['signupheading'] = 'Signup heading';
 $string['signupheading_default'] = 'Starter U Registration';
