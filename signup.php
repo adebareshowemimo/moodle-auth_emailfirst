@@ -106,9 +106,17 @@ $formdata = [
     'city' => !empty($CFG->defaultcity) ? $CFG->defaultcity : '',
     'country' => !empty($CFG->country) ? $CFG->country : '',
     'password' => '',
-    'referral_source' => '',
     'policyagreed' => 0,
+    'profile_field_state' => '',
+    'profile_field_lga' => '',
 ];
+
+// Add defaults for every other custom profile field enabled on signup.
+foreach (get_additional_signup_profile_fields() as $profilefield) {
+    $field = $profilefield->object->field;
+    $inputname = 'profile_field_' . $field->shortname;
+    $formdata[$inputname] = get_signup_profile_field_default($field);
+}
 
 // Handle POST.
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -127,8 +135,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $formdata['city'] = trim(optional_param('city', '', PARAM_TEXT));
         $formdata['country'] = optional_param('country', '', PARAM_ALPHA);
         $formdata['password'] = optional_param('password', '', PARAM_RAW);
-        $formdata['referral_source'] = trim(optional_param('referral_source', '', PARAM_TEXT));
         $formdata['policyagreed'] = optional_param('policyagreed', 0, PARAM_INT);
+        $formdata['profile_field_state'] = trim(optional_param('profile_field_state', '', PARAM_TEXT));
+        $formdata['profile_field_lga'] = trim(optional_param('profile_field_lga', '', PARAM_TEXT));
+        collect_additional_signup_profile_data($formdata);
 
         // Validate.
         $errors = validate_signup_data($formdata, $config);
@@ -144,8 +154,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $user->city = $formdata['city'];
         $user->country = $formdata['country'];
         $user->password = $formdata['password'];
-        $user->referral_source = $formdata['referral_source'];
         $user->policyagreed = $formdata['policyagreed'];
+
+        foreach ($formdata as $fieldname => $fieldvalue) {
+            if (strpos($fieldname, 'profile_field_') === 0) {
+                $user->{$fieldname} = $fieldvalue;
+            }
+        }
 
         // Add required fields (secret, etc.).
         $user = signup_setup_new_user($user);
@@ -227,10 +242,27 @@ function validate_signup_data(array $data, $config): array {
         }
     }
 
-    // Referral survey (if required).
-    if (!empty($config->showreferralsurvey) && empty($data['referral_source'])) {
-        $errors['referral_source'] = get_string('referral_source_required', 'auth_emailfirst');
+    // Nigeria State/LGA custom profile fields.
+    $locationfields = get_nigeria_profile_fields();
+    if ($locationfields) {
+        $state = $data['profile_field_state'];
+        $lga = $data['profile_field_lga'];
+
+        if (!empty($locationfields['state']->required) && $state === '') {
+            $errors['profile_field_state'] = get_string('required');
+        } else if ($state !== '' && !in_array($state, \auth_emailfirst\local\nigeria_locations::states(), true)) {
+            $errors['profile_field_state'] = get_string('invalidnigeriastate', 'auth_emailfirst');
+        }
+
+        if (!empty($locationfields['lga']->required) && $lga === '') {
+            $errors['profile_field_lga'] = get_string('required');
+        } else if ($lga !== '' && !\auth_emailfirst\local\nigeria_locations::is_valid($state, $lga)) {
+            $errors['profile_field_lga'] = get_string('invalidnigerialga', 'auth_emailfirst');
+        }
     }
+
+    // Validate all other custom profile fields configured for signup.
+    $errors += validate_additional_signup_profile_data($data);
 
     // Site policy agreement.
     $manager = new \core_privacy\local\sitepolicy\manager();
@@ -290,7 +322,7 @@ function validate_signup_data(array $data, $config): array {
  * @return stdClass Template context.
  */
 function build_signup_context(array $formdata, array $errors, $config, $output, $site): stdClass {
-    global $CFG;
+    global $CFG, $PAGE;
 
     $ctx = new stdClass();
 
@@ -300,6 +332,7 @@ function build_signup_context(array $formdata, array $errors, $config, $output, 
     $method->setAccessible(true);
     $logourl = $method->invoke($authplugin, $output);
     $ctx->logourl = $logourl ? $logourl->out(false) : false;
+    $ctx->externalbrandlogo = ($PAGE->theme->name ?? '') === 'boost_union';
 
     // Logo dimensions.
     $logoheight = !empty($config->logoheight) ? (int) $config->logoheight : 80;
@@ -344,8 +377,6 @@ function build_signup_context(array $formdata, array $errors, $config, $output, 
     $ctx->firstname = s($formdata['firstname']);
     $ctx->lastname = s($formdata['lastname']);
     $ctx->city = s($formdata['city']);
-    $ctx->referral_source = s($formdata['referral_source']);
-
     // Errors.
     $errorobj = new stdClass();
     foreach ($errors as $field => $msg) {
@@ -376,31 +407,49 @@ function build_signup_context(array $formdata, array $errors, $config, $output, 
     // Password policy.
     $ctx->passwordpolicy = !empty($CFG->passwordpolicy) ? print_password_policy() : '';
 
-    // Referral survey.
-    $ctx->showreferralsurvey = !empty($config->showreferralsurvey);
-    if ($ctx->showreferralsurvey) {
-        $referralkeys = [
-            '' => 'referral_select',
-            'search_engine' => 'referral_search_engine',
-            'social_media' => 'referral_social_media',
-            'friend_family' => 'referral_friend_family',
-            'colleague' => 'referral_colleague',
-            'online_ad' => 'referral_online_ad',
-            'blog_article' => 'referral_blog_article',
-            'email_newsletter' => 'referral_email_newsletter',
-            'event_conference' => 'referral_event_conference',
-            'youtube' => 'referral_youtube',
-            'podcast' => 'referral_podcast',
-            'other' => 'referral_other',
-        ];
-        $ctx->referral_options = [];
-        foreach ($referralkeys as $value => $strkey) {
-            $ctx->referral_options[] = [
-                'value' => $value,
-                'label' => get_string($strkey, 'auth_emailfirst'),
-                'selected' => ($formdata['referral_source'] === $value),
+    // Dependent Nigeria State/LGA custom profile fields.
+    $ctx->shownigerialocations = false;
+    $locationfields = get_nigeria_profile_fields();
+    if ($locationfields) {
+        $ctx->shownigerialocations = true;
+        $ctx->statelabel = format_string($locationfields['state']->name);
+        $ctx->lgalabel = format_string($locationfields['lga']->name);
+        $ctx->staterequired = !empty($locationfields['state']->required);
+        $ctx->lgarequired = !empty($locationfields['lga']->required);
+        $ctx->stateoptions = [[
+            'value' => '',
+            'label' => get_string('selectnigeriastate', 'auth_emailfirst'),
+            'selected' => $formdata['profile_field_state'] === '',
+        ]];
+        foreach (\auth_emailfirst\local\nigeria_locations::states() as $state) {
+            $ctx->stateoptions[] = [
+                'value' => $state,
+                'label' => $state,
+                'selected' => $formdata['profile_field_state'] === $state,
             ];
         }
+
+        $ctx->lgaoptions = [[
+            'value' => '',
+            'label' => $formdata['profile_field_state'] === ''
+                ? get_string('selectnigeriastatefirst', 'auth_emailfirst')
+                : get_string('selectnigerialga', 'auth_emailfirst'),
+            'selected' => $formdata['profile_field_lga'] === '',
+        ]];
+        foreach (\auth_emailfirst\local\nigeria_locations::lgas_for_state($formdata['profile_field_state']) as $lga) {
+            $ctx->lgaoptions[] = [
+                'value' => $lga,
+                'label' => $lga,
+                'selected' => $formdata['profile_field_lga'] === $lga,
+            ];
+        }
+
+        $PAGE->requires->js_call_amd('auth_emailfirst/nigeria_location_fields', 'init', [[
+            'locations' => \auth_emailfirst\local\nigeria_locations::all(),
+            'selectState' => get_string('selectnigeriastate', 'auth_emailfirst'),
+            'selectLga' => get_string('selectnigerialga', 'auth_emailfirst'),
+            'selectStateFirst' => get_string('selectnigeriastatefirst', 'auth_emailfirst'),
+        ]]);
     }
 
     // ReCAPTCHA (using new security settings).
@@ -500,13 +549,208 @@ function build_signup_context(array $formdata, array $errors, $config, $output, 
         ]);
     }
 
-    // Profile fields and plugin fields are not rendered via Mustache directly
-    // since they require MoodleQuickForm. We'll leave them empty for v2.
-    // Custom profile fields could be added as raw HTML if needed.
-    $ctx->profilefields = '';
+    // Render all remaining signup-enabled custom profile fields as structured context.
+    $ctx->profilefieldcategories = build_additional_profile_fields_context($formdata, $errors);
     $ctx->pluginfields = '';
 
     return $ctx;
+}
+
+/**
+ * Return the enabled State and LGA signup profile fields.
+ *
+ * Both fields must exist, use the short names "state" and "lga", and be
+ * configured to display on signup before the dependent controls are shown.
+ *
+ * @return array<string, stdClass>|null
+ */
+function get_nigeria_profile_fields(): ?array {
+    global $DB;
+
+    $records = $DB->get_records_list('user_info_field', 'shortname', ['state', 'lga']);
+    $fields = [];
+    foreach ($records as $record) {
+        $fields[$record->shortname] = $record;
+    }
+
+    if (
+        empty($fields['state']) || empty($fields['lga']) ||
+            empty($fields['state']->signup) || empty($fields['lga']->signup)
+    ) {
+        return null;
+    }
+
+    return $fields;
+}
+
+/**
+ * Return all signup profile fields except the State/LGA pair rendered separately.
+ *
+ * @return array
+ */
+function get_additional_signup_profile_fields(): array {
+    return array_values(array_filter(profile_get_signup_fields(), static function ($profilefield): bool {
+        return !in_array($profilefield->object->field->shortname, ['state', 'lga'], true);
+    }));
+}
+
+/**
+ * Return a suitable initial value for a custom profile field.
+ *
+ * @param stdClass $field Profile field record.
+ * @return mixed
+ */
+function get_signup_profile_field_default(stdClass $field) {
+    if ($field->datatype === 'checkbox') {
+        return !empty($field->defaultdata) ? 1 : 0;
+    }
+    if ($field->datatype === 'datetime') {
+        return is_numeric($field->defaultdata) && (int)$field->defaultdata > 0
+            ? userdate((int)$field->defaultdata, '%Y-%m-%d', 99, false)
+            : '';
+    }
+    return isset($field->defaultdata) ? (string)$field->defaultdata : '';
+}
+
+/**
+ * Collect custom-profile values submitted to the Mustache signup form.
+ *
+ * @param array $formdata Form data to update.
+ */
+function collect_additional_signup_profile_data(array &$formdata): void {
+    foreach (get_additional_signup_profile_fields() as $profilefield) {
+        $field = $profilefield->object->field;
+        $inputname = 'profile_field_' . $field->shortname;
+        if ($field->datatype === 'checkbox') {
+            $formdata[$inputname] = optional_param($inputname, 0, PARAM_BOOL);
+        } else if ($field->datatype === 'textarea') {
+            $formdata[$inputname] = optional_param($inputname, '', PARAM_RAW_TRIMMED);
+        } else {
+            $formdata[$inputname] = optional_param($inputname, '', PARAM_TEXT);
+        }
+    }
+}
+
+/**
+ * Validate custom profile fields rendered by the Mustache signup form.
+ *
+ * @param array $formdata Submitted form data.
+ * @return array
+ */
+function validate_additional_signup_profile_data(array $formdata): array {
+    $errors = [];
+    $usernew = (object)['id' => 0];
+
+    foreach (get_additional_signup_profile_fields() as $profilefield) {
+        $field = $profilefield->object->field;
+        $inputname = 'profile_field_' . $field->shortname;
+        $value = $formdata[$inputname] ?? '';
+        $usernew->{$inputname} = $value;
+
+        $isempty = $field->datatype === 'checkbox' ? empty($value) : trim((string)$value) === '';
+        if (!empty($field->required) && $isempty) {
+            $errors[$inputname] = get_string('required');
+            continue;
+        }
+
+        if ($field->datatype === 'menu' && !$isempty) {
+            $options = array_map('trim', preg_split('/\R/', (string)$field->param1));
+            if (!in_array($value, $options, true)) {
+                $errors[$inputname] = get_string('invaliddata', 'error');
+                continue;
+            }
+        }
+
+        if ($field->datatype === 'datetime' && !$isempty) {
+            $dateparts = date_parse_from_format('Y-m-d', (string)$value);
+            $validdate = $dateparts['error_count'] === 0 && $dateparts['warning_count'] === 0
+                && checkdate($dateparts['month'], $dateparts['day'], $dateparts['year']);
+            if (!$validdate || $dateparts['year'] < (int)$field->param1 || $dateparts['year'] > (int)$field->param2) {
+                $errors[$inputname] = get_string('invaliddata', 'error');
+                continue;
+            }
+        }
+
+        $errors += $profilefield->object->edit_validate_field($usernew);
+    }
+
+    return $errors;
+}
+
+/**
+ * Build Mustache context for all non-location signup profile fields.
+ *
+ * @param array $formdata Current form values.
+ * @param array $errors Current validation errors.
+ * @return array
+ */
+function build_additional_profile_fields_context(array $formdata, array $errors): array {
+    $categories = [];
+
+    foreach (get_additional_signup_profile_fields() as $profilefield) {
+        $field = $profilefield->object->field;
+        $categoryid = (int)$profilefield->categoryid;
+        $inputname = 'profile_field_' . $field->shortname;
+        $value = $formdata[$inputname] ?? '';
+
+        if (!isset($categories[$categoryid])) {
+            $categories[$categoryid] = [
+                'name' => format_string($profilefield->object->get_category_name()),
+                'fields' => [],
+            ];
+        }
+
+        $fieldcontext = [
+            'name' => $inputname,
+            'id' => $inputname,
+            'label' => format_string($field->name),
+            'required' => !empty($field->required),
+            'value' => $value,
+            'error' => $errors[$inputname] ?? '',
+            'haserror' => !empty($errors[$inputname]),
+            'istext' => in_array($field->datatype, ['text', 'social'], true),
+            'istextarea' => $field->datatype === 'textarea',
+            'ismenu' => $field->datatype === 'menu',
+            'ischeckbox' => $field->datatype === 'checkbox',
+            'isdatetime' => $field->datatype === 'datetime',
+            'checked' => $field->datatype === 'checkbox' && !empty($value),
+            'maxlength' => $field->datatype === 'text' ? max(1, (int)$field->param2) : 255,
+            'inputtype' => $field->datatype === 'text' && !empty($field->param3) ? 'password' : 'text',
+            'minyear' => $field->datatype === 'datetime' ? (int)$field->param1 : 0,
+            'maxyear' => $field->datatype === 'datetime' ? (int)$field->param2 : 0,
+        ];
+
+        if ($field->datatype === 'menu') {
+            $fieldcontext['options'] = [[
+                'value' => '',
+                'label' => get_string('choose') . '...',
+                'selected' => $value === '',
+            ]];
+            foreach (preg_split('/\R/', (string)$field->param1) as $option) {
+                $option = trim($option);
+                if ($option === '') {
+                    continue;
+                }
+                $fieldcontext['options'][] = [
+                    'value' => $option,
+                    'label' => format_string($option),
+                    'selected' => $value === $option,
+                ];
+            }
+        }
+
+        // Unknown third-party field types fall back to a safe text control.
+        if (
+            !$fieldcontext['istext'] && !$fieldcontext['istextarea'] && !$fieldcontext['ismenu']
+                && !$fieldcontext['ischeckbox'] && !$fieldcontext['isdatetime']
+        ) {
+            $fieldcontext['istext'] = true;
+        }
+
+        $categories[$categoryid]['fields'][] = $fieldcontext;
+    }
+
+    return array_values($categories);
 }
 
 /**

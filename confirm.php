@@ -29,6 +29,7 @@ require(__DIR__ . '/../../config.php');
 require_once(__DIR__ . '/../../login/lib.php');
 require_once($CFG->libdir . '/authlib.php');
 require_once($CFG->libdir . '/enrollib.php');
+require_once($CFG->dirroot . '/auth/emailfirst/lib.php');
 
 $data = optional_param('data', '', PARAM_RAW);  // Formatted as: secret/username.
 
@@ -37,6 +38,7 @@ $PAGE->set_context(context_system::instance());
 
 // Get the emailfirst auth plugin.
 $authplugin = get_auth_plugin('emailfirst');
+$postregistrationurl = auth_emailfirst_get_post_registration_url();
 
 if (!$authplugin) {
     throw new moodle_exception('confirmationnotenabled');
@@ -58,13 +60,26 @@ $confirmed = $authplugin->user_confirm($username, $usersecret);
 
 if ($confirmed == AUTH_CONFIRM_ALREADY) {
     $user = get_complete_user_data('username', $username);
+    if ($user && $user->suspended) {
+        $PAGE->navbar->add(get_string('accountpendingapproval', 'auth_emailfirst'));
+        $PAGE->set_title(get_string('accountpendingapproval', 'auth_emailfirst'));
+        $PAGE->set_heading($SITE->fullname);
+        echo $OUTPUT->header();
+        echo $OUTPUT->box_start('generalbox centerpara boxwidthnormal boxaligncenter');
+        echo html_writer::tag('h3', get_string('accountpendingapproval', 'auth_emailfirst'));
+        echo html_writer::tag('p', get_string('accountpendingapproval_notice', 'auth_emailfirst'));
+        echo $OUTPUT->single_button(new moodle_url('/'), get_string('continue'));
+        echo $OUTPUT->box_end();
+        echo $OUTPUT->footer();
+        exit;
+    }
     $PAGE->navbar->add(get_string('alreadyconfirmed'));
     $PAGE->set_title(get_string('alreadyconfirmed'));
     $PAGE->set_heading($SITE->fullname);
     echo $OUTPUT->header();
     echo $OUTPUT->box_start('generalbox centerpara boxwidthnormal boxaligncenter');
     echo "<p>" . get_string('alreadyconfirmed') . "</p>\n";
-    echo $OUTPUT->single_button(new moodle_url('/my/'), get_string('continue'));
+    echo $OUTPUT->single_button($postregistrationurl, get_string('continue'));
     echo $OUTPUT->box_end();
     echo $OUTPUT->footer();
     exit;
@@ -82,6 +97,21 @@ if ($confirmed == AUTH_CONFIRM_ALREADY) {
 
     if (!empty($autoenrollcourseid) && $autoenrollcourseid > 0) {
         $enrolledcourse = auth_emailfirst_enroll_user_in_course($user->id, $autoenrollcourseid);
+    }
+
+    // A suspended user has verified their email but is still awaiting admin approval.
+    if ($user->suspended) {
+        $PAGE->navbar->add(get_string('accountpendingapproval', 'auth_emailfirst'));
+        $PAGE->set_title(get_string('accountpendingapproval', 'auth_emailfirst'));
+        $PAGE->set_heading($SITE->fullname);
+        echo $OUTPUT->header();
+        echo $OUTPUT->box_start('generalbox centerpara boxwidthnormal boxaligncenter');
+        echo html_writer::tag('h3', get_string('emailverified', 'auth_emailfirst'));
+        echo html_writer::tag('p', get_string('accountpendingapproval_notice', 'auth_emailfirst'));
+        echo $OUTPUT->single_button(new moodle_url('/'), get_string('continue'));
+        echo $OUTPUT->box_end();
+        echo $OUTPUT->footer();
+        exit;
     }
 
     // Log the user in if not suspended.
@@ -116,14 +146,14 @@ if ($confirmed == AUTH_CONFIRM_ALREADY) {
     echo "<h3>" . get_string('thanks') . ", " . fullname($USER) . "</h3>\n";
     echo "<p>" . get_string('confirmed') . "</p>\n";
 
-    // Button to continue to course or dashboard.
-    if ($enrolledcourse) {
+    // Button to continue to an explicitly configured course or destination.
+    if (!empty($redirecttocourse) && $enrolledcourse) {
         echo $OUTPUT->single_button(
             new moodle_url('/course/view.php', ['id' => $enrolledcourse->id]),
             get_string('continue')
         );
     } else {
-        echo $OUTPUT->single_button(new moodle_url('/my/'), get_string('continue'));
+        echo $OUTPUT->single_button($postregistrationurl, get_string('continue'));
     }
 
     echo $OUTPUT->box_end();

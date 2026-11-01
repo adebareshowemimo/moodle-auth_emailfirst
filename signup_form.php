@@ -212,42 +212,10 @@ class auth_emailfirst_signup_form extends login_signup_form {
             'client'
         );
 
-        // Step 5: Final (survey, profile, captcha, policy, submit).
+        // Step 5: Final (profile, captcha, policy, submit).
         if ($multistep) {
             $mform->addElement('header', 'step_final', get_string('step_final', 'auth_emailfirst'));
             $mform->setExpanded('step_final', true);
-        }
-
-        // Referral survey (if enabled).
-        if (!empty($config->showreferralsurvey)) {
-            $referraloptions = [
-                '' => get_string('referral_select', 'auth_emailfirst'),
-                'search_engine' => get_string('referral_search_engine', 'auth_emailfirst'),
-                'social_media' => get_string('referral_social_media', 'auth_emailfirst'),
-                'friend_family' => get_string('referral_friend_family', 'auth_emailfirst'),
-                'colleague' => get_string('referral_colleague', 'auth_emailfirst'),
-                'online_ad' => get_string('referral_online_ad', 'auth_emailfirst'),
-                'blog_article' => get_string('referral_blog_article', 'auth_emailfirst'),
-                'email_newsletter' => get_string('referral_email_newsletter', 'auth_emailfirst'),
-                'event_conference' => get_string('referral_event_conference', 'auth_emailfirst'),
-                'youtube' => get_string('referral_youtube', 'auth_emailfirst'),
-                'podcast' => get_string('referral_podcast', 'auth_emailfirst'),
-                'other' => get_string('referral_other', 'auth_emailfirst'),
-            ];
-            $mform->addElement(
-                'select',
-                'referral_source',
-                get_string('referral_source', 'auth_emailfirst'),
-                $referraloptions
-            );
-            $mform->setType('referral_source', PARAM_TEXT);
-            $mform->addRule(
-                'referral_source',
-                get_string('referral_source_required', 'auth_emailfirst'),
-                'required',
-                null,
-                'client'
-            );
         }
 
         // Custom profile fields.

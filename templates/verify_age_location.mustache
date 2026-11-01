@@ -65,13 +65,15 @@
 
 <div class="signupform auth-emailfirst-signupform">
     <div class="text-center mb-4">
-        {{#logourl}}
-            <div class="signup-logo">
-                <img src="{{logourl}}" class="img-fluid" alt="{{sitename}}" style="{{logostyle}}"/>
-            </div>
-        {{/logourl}}
+        {{^externalbrandlogo}}
+            {{#logourl}}
+                <div class="signup-logo">
+                    <img src="{{logourl}}" class="img-fluid" alt="{{sitename}}" style="{{logostyle}}"/>
+                </div>
+            {{/logourl}}
+        {{/externalbrandlogo}}
         {{#heading}}
-            <h2 class="mt-3">{{heading}}</h2>
+            <h2>{{heading}}</h2>
         {{/heading}}
         {{#subheading}}
             <p class="text-muted">{{subheading}}</p>

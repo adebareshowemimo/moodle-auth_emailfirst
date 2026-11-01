@@ -83,6 +83,91 @@ function auth_emailfirst_pre_signup_requests() {
 }
 
 /**
+ * Return the configured local destination after registration is completed.
+ *
+ * @return moodle_url
+ */
+function auth_emailfirst_get_post_registration_url(): moodle_url {
+    $defaultpath = '/local/moderncommerce/learner/index.php';
+    $configuredpath = trim((string)get_config('auth_emailfirst', 'postregistrationredirect'));
+    if ($configuredpath === '') {
+        $configuredpath = $defaultpath;
+    }
+
+    $cleanpath = clean_param($configuredpath, PARAM_LOCALURL);
+    if ($cleanpath === '' || strpos($cleanpath, '//') === 0) {
+        $cleanpath = $defaultpath;
+    }
+    if ($cleanpath[0] !== '/') {
+        $cleanpath = '/' . $cleanpath;
+    }
+
+    return new moodle_url($cleanpath);
+}
+
+/**
+ * Initialise core authentication mappings for Email-First location fields.
+ *
+ * Moodle creates DB, LDAP, and Shibboleth mapping settings dynamically for
+ * every custom profile field. If a setting has no config_plugins row,
+ * admin/upgradesettings.php treats it as a new setting on every upgrade. Seed
+ * the same defaults used by core for the State/LGA fields consumed by this
+ * plugin. Existing administrator choices are never changed.
+ *
+ * @return int Number of config values initialised.
+ */
+function auth_emailfirst_seed_location_auth_mapping_defaults(): int {
+    global $DB;
+
+    $locationfields = $DB->get_fieldset_select(
+        'user_info_field',
+        'shortname',
+        'shortname IN (:state, :lga)',
+        ['state' => 'state', 'lga' => 'lga']
+    );
+    if (empty($locationfields)) {
+        return 0;
+    }
+
+    // These values mirror display_auth_lock_options() in core authlib.php.
+    $plugindefaults = [
+        'auth_db' => [
+            'field_map_%s' => '',
+            'field_updatelocal_%s' => 'oncreate',
+            'field_updateremote_%s' => '0',
+            'field_lock_%s' => 'unlocked',
+        ],
+        'auth_ldap' => [
+            'field_map_%s' => '',
+            'field_updatelocal_%s' => 'oncreate',
+            'field_updateremote_%s' => '0',
+            'field_lock_%s' => 'unlocked',
+        ],
+        'auth_shibboleth' => [
+            'field_map_%s' => '',
+            'field_updatelocal_%s' => 'oncreate',
+            'field_lock_%s' => 'unlocked',
+        ],
+    ];
+
+    $written = 0;
+    foreach (array_unique($locationfields) as $shortname) {
+        $fieldname = 'profile_field_' . $shortname;
+        foreach ($plugindefaults as $component => $defaults) {
+            foreach ($defaults as $pattern => $default) {
+                $configname = sprintf($pattern, $fieldname);
+                if (get_config($component, $configname) === false) {
+                    set_config($configname, $default, $component);
+                    $written++;
+                }
+            }
+        }
+    }
+
+    return $written;
+}
+
+/**
  * Enroll a user in a course using manual enrollment.
  *
  * Shared helper used by both user_signup() (auth.php) and confirm.php.

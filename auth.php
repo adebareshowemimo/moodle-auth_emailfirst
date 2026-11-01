@@ -149,6 +149,15 @@ class auth_plugin_emailfirst extends auth_plugin_base {
             return;
         }
 
+        // Let core handle special login states and an explicitly configured
+        // alternate login URL.
+        if (
+            (isloggedin() && !isguestuser()) ||
+                (!empty($CFG->alternateloginurl) && optional_param('loginredirect', 1, PARAM_BOOL))
+        ) {
+            return;
+        }
+
         // Set up the page.
         $SITE = get_site();
         $PAGE->set_url(new moodle_url('/login/index.php'));
@@ -165,6 +174,15 @@ class auth_plugin_emailfirst extends auth_plugin_base {
         $authsequence = get_enabled_auth_plugins();
         $username = optional_param('username', '', PARAM_RAW);
         $loginform = new \core_auth\output\login($authsequence, $username);
+        // Core stores failed POST messages in the session before redirecting
+        // back to GET. This hook runs before core consumes those messages.
+        if (!empty($SESSION->loginerrormsg)) {
+            $loginform->set_error($SESSION->loginerrormsg, (int)($SESSION->loginerrorcode ?? 0));
+        }
+        if (!empty($SESSION->logininfomsg)) {
+            $loginform->set_info($SESSION->logininfomsg);
+        }
+        unset($SESSION->loginerrormsg, $SESSION->logininfomsg, $SESSION->loginerrorcode);
         $context = $loginform->export_for_template($OUTPUT);
 
         // Format error text.
@@ -175,6 +193,7 @@ class auth_plugin_emailfirst extends auth_plugin_base {
         // Resolve logo from plugin settings (same source as signup form).
         $logourl = $this->resolve_logo_url($OUTPUT);
         $context->logourl = $logourl ? $logourl->out(false) : false;
+        $context->externalbrandlogo = ($PAGE->theme->name ?? '') === 'boost_union';
 
         // Logo dimensions.
         $logoheight = !empty($this->config->logoheight) ? (int) $this->config->logoheight : 80;
@@ -290,6 +309,7 @@ class auth_plugin_emailfirst extends auth_plugin_base {
         global $DB, $CFG;
         require_once($CFG->dirroot . '/user/profile/lib.php');
         require_once($CFG->dirroot . '/user/lib.php');
+        require_once($CFG->dirroot . '/auth/emailfirst/lib.php');
 
         // Enforce email as username.
         $user->username = core_text::strtolower($user->email);
@@ -300,6 +320,11 @@ class auth_plugin_emailfirst extends auth_plugin_base {
         if (empty($user->calendartype)) {
             $user->calendartype = $CFG->calendartype;
         }
+
+        // Moodle's suspended flag is the account's independent admin-approval state.
+        // Keep it separate from confirmed, which exclusively tracks email verification.
+        $requiresadminapproval = !empty($this->config->requireadminapproval);
+        $user->suspended = $requiresadminapproval ? 1 : 0;
 
         $user->id = user_create_user($user, false, false);
 
@@ -349,7 +374,9 @@ class auth_plugin_emailfirst extends auth_plugin_base {
                         'heading' => get_string('verificationemailsent', 'auth_emailfirst'),
                         'message' => get_string('verificationemailsent_desc', 'auth_emailfirst'),
                         'email' => s($user->email),
-                        'submessage' => get_string('verificationemailsent_check', 'auth_emailfirst'),
+                        'submessage' => $requiresadminapproval
+                            ? get_string('verificationemailsent_check_adminapproval', 'auth_emailfirst')
+                            : get_string('verificationemailsent_check', 'auth_emailfirst'),
                         'actionurl' => "$CFG->wwwroot/index.php",
                         'actionlabel' => get_string('continue'),
                         'icon' => 'fa-envelope',
@@ -366,6 +393,39 @@ class auth_plugin_emailfirst extends auth_plugin_base {
 
         if (!empty($this->config->sendwelcomeemail)) {
             $this->send_welcome_email($user);
+        }
+
+        // The email requirement is satisfied, but an administrator must still
+        // activate this suspended account from Site administration > Users.
+        if ($requiresadminapproval) {
+            $autoenrollcourseid = get_config('auth_emailfirst', 'autoenrollcourse');
+            if (!empty($autoenrollcourseid) && $autoenrollcourseid > 0) {
+                auth_emailfirst_enroll_user_in_course($user->id, $autoenrollcourseid);
+            }
+
+            if ($notify) {
+                global $PAGE, $OUTPUT;
+                $PAGE->navbar->add(get_string('accountpendingapproval', 'auth_emailfirst'));
+                $PAGE->set_title(get_string('accountpendingapproval', 'auth_emailfirst'));
+                $PAGE->set_heading($PAGE->course->fullname);
+                $OUTPUT = $PAGE->get_renderer('core');
+                echo $OUTPUT->header();
+                echo $OUTPUT->render_from_template(
+                    'auth_emailfirst/signup_confirmation',
+                    $this->build_confirmation_context($OUTPUT, [
+                        'heading' => get_string('accountpendingapproval', 'auth_emailfirst'),
+                        'message' => get_string('accountpendingapproval_desc', 'auth_emailfirst'),
+                        'email' => s($user->email),
+                        'submessage' => get_string('accountpendingapproval_notice', 'auth_emailfirst'),
+                        'actionurl' => "$CFG->wwwroot/index.php",
+                        'actionlabel' => get_string('continue'),
+                        'icon' => 'fa-clock-o',
+                        'variant' => 'info',
+                    ])
+                );
+                echo $OUTPUT->footer();
+            }
+            return false;
         }
 
         // Auto-login the new user so they land inside the site immediately.
@@ -387,18 +447,18 @@ class auth_plugin_emailfirst extends auth_plugin_base {
             }
 
             // Auto-enroll in course if configured.
-            require_once($CFG->dirroot . '/auth/emailfirst/lib.php');
             $autoenrollcourseid = get_config('auth_emailfirst', 'autoenrollcourse');
+            $redirecttocourse = get_config('auth_emailfirst', 'redirecttocourse');
             $enrolledcourse = null;
             if (!empty($autoenrollcourseid) && $autoenrollcourseid > 0) {
                 $enrolledcourse = auth_emailfirst_enroll_user_in_course($fulluser->id, $autoenrollcourseid);
             }
 
-            // Redirect to course if enrolled, otherwise dashboard.
-            if ($enrolledcourse) {
+            // Redirect to a configured course or the post-registration destination.
+            if (!empty($redirecttocourse) && $enrolledcourse) {
                 redirect(new moodle_url('/course/view.php', ['id' => $enrolledcourse->id]));
             }
-            redirect(new moodle_url('/my/'));
+            redirect(auth_emailfirst_get_post_registration_url());
         }
         return true;
     }
@@ -519,9 +579,13 @@ class auth_plugin_emailfirst extends auth_plugin_base {
         $subject = str_replace(array_keys($replacements), array_values($replacements), $subject);
         $messagebody = str_replace(array_keys($replacements), array_values($replacements), $messagebody);
 
-        $user->email = clean_param($user->email, PARAM_EMAIL);
+        $mailrecipient = clone $user;
+        $mailrecipient->email = clean_param($mailrecipient->email, PARAM_EMAIL);
+        // Moodle normally suppresses all mail to suspended users. Verification
+        // must still be delivered while this account awaits admin approval.
+        $mailrecipient->suspended = 0;
         return email_to_user(
-            $user,
+            $mailrecipient,
             core_user::get_support_user(),
             $subject,
             html_to_text($messagebody),

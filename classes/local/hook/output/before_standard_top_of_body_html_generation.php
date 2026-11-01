@@ -36,10 +36,50 @@ class before_standard_top_of_body_html_generation {
     public static function callback(\core\hook\output\before_standard_top_of_body_html_generation $hook): void {
         self::redirect_core_pages();
 
+        $brandlogo = self::get_auth_page_brand_logo();
+        if ($brandlogo !== '') {
+            $hook->add_html($brandlogo);
+        }
+
         $html = self::get_signup_button_html();
         if ($html !== '') {
             $hook->add_html($html);
         }
+    }
+
+    /**
+     * Place the Starter U white logo outside the theme's login card.
+     *
+     * Boost Union prints this hook before its page wrapper. That gives the logo
+     * its own element, so it can sit beside the card on desktop and above it on
+     * mobile without changing the theme or moving form controls with JavaScript.
+     *
+     * @return string Logo link, or an empty string when it does not apply.
+     */
+    private static function get_auth_page_brand_logo(): string {
+        global $PAGE;
+
+        if (
+            ($PAGE->theme->name ?? '') !== 'boost_union' ||
+                (\isloggedin() && !\isguestuser())
+        ) {
+            return '';
+        }
+
+        $signup = $PAGE->url->compare(new \moodle_url('/auth/emailfirst/signup.php'), URL_MATCH_BASE);
+        $verifyage = $PAGE->url->compare(new \moodle_url('/auth/emailfirst/verify_age_location.php'), URL_MATCH_BASE);
+        $login = $PAGE->url->compare(new \moodle_url('/login/index.php'), URL_MATCH_BASE) &&
+            !empty(\get_config('auth_emailfirst', 'enablecustomlogin'));
+        if (!$signup && !$verifyage && !$login) {
+            return '';
+        }
+
+        $logo = new \moodle_url('/auth/emailfirst/pix/starteru-white-logo.png');
+        $home = new \moodle_url('/');
+        $sitename = \format_string(\get_site()->fullname);
+        return '<a class="auth-emailfirst-brand-link" href="' . \s($home->out(false)) .
+            '" aria-label="' . \s($sitename) . ': ' . \s(\get_string('home')) . '">' .
+            '<img src="' . \s($logo->out(false)) . '" alt="' . \s($sitename) . '"></a>';
     }
 
     /**
@@ -69,9 +109,16 @@ class before_standard_top_of_body_html_generation {
      * @return string
      */
     public static function get_signup_button_html(): string {
-        global $CFG;
+        global $CFG, $PAGE;
 
         if (\isloggedin() && !\isguestuser()) {
+            return '';
+        }
+
+        // ModernUI renders and styles both logged-out header actions itself.
+        // Do not append the legacy JavaScript button or its inline styles,
+        // which would otherwise duplicate and override the theme controls.
+        if (($PAGE->theme->name ?? '') === 'modernui') {
             return '';
         }
 

@@ -103,6 +103,7 @@ $method = new ReflectionMethod($authinstance, 'resolve_logo_url');
 $method->setAccessible(true);
 $logourl = $method->invoke($authinstance, $OUTPUT);
 $ctx->logourl = $logourl ? $logourl->out(false) : false;
+$ctx->externalbrandlogo = ($PAGE->theme->name ?? '') === 'boost_union';
 
 // Logo dimensions.
 $logoheight = !empty($config->logoheight) ? (int) $config->logoheight : 80;

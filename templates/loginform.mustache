@@ -71,17 +71,16 @@
 
 <div class="loginform auth-emailfirst-loginform">
     <div class="text-center mb-4">
-        {{#logourl}}
-            <div id="loginlogo" class="login-logo">
-                <img id="logoimage" src="{{logourl}}" class="img-fluid" alt="{{sitename}}" style="{{logostyle}}"/>
-                <h1 class="login-heading visually-hidden">{{#str}} loginto, core, {{sitename}} {{/str}}</h1>
-            </div>
-        {{/logourl}}
-        {{^logourl}}
-            <h1 class="login-heading">{{#str}} loginto, core, {{sitename}} {{/str}}</h1>
-        {{/logourl}}
+        {{^externalbrandlogo}}
+            {{#logourl}}
+                <div id="loginlogo" class="login-logo">
+                    <img id="logoimage" src="{{logourl}}" class="img-fluid" alt="{{sitename}}" style="{{logostyle}}"/>
+                </div>
+            {{/logourl}}
+        {{/externalbrandlogo}}
+        <h1 class="login-heading visually-hidden">{{#str}} loginto, core, {{sitename}} {{/str}}</h1>
         {{#loginheading}}
-            <h2 class="mt-3">{{loginheading}}</h2>
+            <h2>{{loginheading}}</h2>
         {{/loginheading}}
         {{#loginsubheading}}
             <p class="text-muted mt-2">{{loginsubheading}}</p>

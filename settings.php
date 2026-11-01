@@ -287,12 +287,27 @@ if ($ADMIN->fulltree) {
         1
     ));
 
+    // Account activation controls.
+    $settings->add(new admin_setting_heading(
+        'auth_emailfirst/accountactivation_header',
+        get_string('accountactivation_settings', 'auth_emailfirst'),
+        get_string('accountactivation_settings_desc', 'auth_emailfirst')
+    ));
+
     // Require email verification.
     $settings->add(new admin_setting_configcheckbox(
         'auth_emailfirst/requireemailverification',
         get_string('requireemailverification', 'auth_emailfirst'),
         get_string('requireemailverification_desc', 'auth_emailfirst'),
         1
+    ));
+
+    // Require an administrator to approve each new account.
+    $settings->add(new admin_setting_configcheckbox(
+        'auth_emailfirst/requireadminapproval',
+        get_string('requireadminapproval', 'auth_emailfirst'),
+        get_string('requireadminapproval_desc', 'auth_emailfirst'),
+        0
     ));
 
     // Verification expiry time.
@@ -341,20 +356,21 @@ if ($ADMIN->fulltree) {
         1
     ));
 
+    // Local destination after registration when no course redirect applies.
+    $settings->add(new admin_setting_configtext(
+        'auth_emailfirst/postregistrationredirect',
+        get_string('postregistrationredirect', 'auth_emailfirst'),
+        get_string('postregistrationredirect_desc', 'auth_emailfirst'),
+        '/local/moderncommerce/learner/index.php',
+        PARAM_LOCALURL
+    ));
+
     // Auto-enroll existing users on login.
     $settings->add(new admin_setting_configcheckbox(
         'auth_emailfirst/autoenrollexistingusers',
         get_string('autoenrollexistingusers', 'auth_emailfirst'),
         get_string('autoenrollexistingusers_desc', 'auth_emailfirst'),
         0
-    ));
-
-    // Show referral survey on signup.
-    $settings->add(new admin_setting_configcheckbox(
-        'auth_emailfirst/showreferralsurvey',
-        get_string('showreferralsurvey', 'auth_emailfirst'),
-        get_string('showreferralsurvey_desc', 'auth_emailfirst'),
-        1
     ));
 
     // Hide city and country on signup form.
