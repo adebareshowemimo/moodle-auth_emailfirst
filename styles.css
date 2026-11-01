@@ -1,9 +1,9 @@
 /* auth_emailfirst styles */
 
 /* Branding outside Boost Union's login card on the email-first entry pages. */
-body:where(#page-login-index,
-    #page-auth-emailfirst-signup,
-    #page-auth-emailfirst-verify_age_location) #page-wrapper {
+body#page-login-index #page-wrapper,
+body#page-auth-emailfirst-signup #page-wrapper,
+body#page-auth-emailfirst-verify_age_location #page-wrapper {
     position: relative;
 }
 
@@ -11,9 +11,9 @@ body:where(#page-login-index,
     position: absolute;
     z-index: 5;
     top: 4.5rem;
-    left: max(2rem, 6vw);
+    left: 6vw;
     display: block;
-    width: min(280px, 32vw);
+    width: 280px;
     line-height: 0;
 }
 
@@ -33,14 +33,9 @@ body:where(#page-login-index,
         position: relative;
         top: auto;
         left: auto;
-        width: min(280px, calc(100% - 3rem));
+        width: 280px;
+        max-width: 80%;
         margin: 2rem auto 0;
-    }
-
-    body:where(#page-login-index,
-        #page-auth-emailfirst-signup,
-        #page-auth-emailfirst-verify_age_location) #page {
-        padding-top: 1.5rem !important;
     }
 }
 
