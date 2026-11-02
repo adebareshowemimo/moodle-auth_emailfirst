@@ -1,4 +1,25 @@
-/* auth_emailfirst styles */
+/**
+ * This file is part of Moodle - http://moodle.org/
+ *
+ * Moodle is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Moodle is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Moodle. If not, see <http://www.gnu.org/licenses/>.
+ *
+ * Email First authentication styles.
+ *
+ * @package    auth_emailfirst
+ * @copyright  2026 Course Commerce Pro
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 
 /* Branding outside Boost Union's login card on the email-first entry pages. */
 body#page-login-index #page-wrapper,
@@ -169,6 +190,22 @@ body#page-auth-emailfirst-verify_age_location #page-wrapper {
     border-radius: 4px;
     font-weight: 500;
     white-space: nowrap;
+}
+
+/* Keep the signup action primary when Boost Union styles navbar buttons as light. */
+.navbar.bg-primary .login .btn-primary.auth-emailfirst-nav-signup {
+    --bs-btn-color: #fff;
+    --bs-btn-bg: var(--bs-primary, #1e406b);
+    --bs-btn-border-color: var(--bs-primary, #1e406b);
+    --bs-btn-hover-color: #fff;
+    --bs-btn-hover-bg: color-mix(in srgb, var(--bs-primary, #1e406b) 85%, black);
+    --bs-btn-hover-border-color: color-mix(in srgb, var(--bs-primary, #1e406b) 85%, black);
+    --bs-btn-active-color: #fff;
+    --bs-btn-active-bg: color-mix(in srgb, var(--bs-primary, #1e406b) 80%, black);
+    --bs-btn-active-border-color: color-mix(in srgb, var(--bs-primary, #1e406b) 80%, black);
+    --bs-btn-disabled-color: #fff;
+    --bs-btn-disabled-bg: var(--bs-primary, #1e406b);
+    --bs-btn-disabled-border-color: var(--bs-primary, #1e406b);
 }
 
 /* ── V2 Custom signup form ── */
