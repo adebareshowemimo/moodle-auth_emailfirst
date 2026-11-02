@@ -24,8 +24,8 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version   = 2026110200;
+$plugin->version   = 2026110201;
 $plugin->requires  = 2022112800;        // Requires Moodle 4.1 or later.
 $plugin->component = 'auth_emailfirst';
 $plugin->maturity  = MATURITY_STABLE;
-$plugin->release   = 'v1.3.1';
+$plugin->release   = 'v1.3.2';

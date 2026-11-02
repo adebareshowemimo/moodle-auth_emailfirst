@@ -32,6 +32,12 @@
     * sesskey - Session key for CSRF protection,
     * age - Pre-filled age value,
     * countries - Array of {value, label, selected},
+    * showindustry - Whether the Industry profile field exists,
+    * industryoptions - Original Starter U industry choices and stable codes,
+    * industryother - Free-text answer when Industry is Other,
+    * showindustryother - Whether Industry (other) is initially visible,
+    * showentrepreneurmultiplier - Whether the multiplier profile field exists,
+    * multiplieroptions - Configured Yes/No choices for the multiplier field,
     * error - Error message (string|false),
     * errors - Object of field => error message,
     * loginurl - Login page URL,
@@ -113,6 +119,49 @@
                 {{/errors.country}}
             </div>
 
+            {{#showindustry}}
+                <div class="mb-3">
+                    <label for="industry" class="form-label">{{#str}} industryquestion, auth_emailfirst {{/str}}</label>
+                    <select class="form-control {{#errors.industry}}is-invalid{{/errors.industry}}"
+                            id="industry" name="industry" required>
+                        {{#industryoptions}}
+                            <option value="{{value}}" {{#selected}}selected{{/selected}}>{{label}}</option>
+                        {{/industryoptions}}
+                    </select>
+                    {{#errors.industry}}
+                        <div class="invalid-feedback">{{errors.industry}}</div>
+                    {{/errors.industry}}
+                </div>
+                <div class="mb-3" id="industryother-wrapper" {{^showindustryother}}hidden{{/showindustryother}}>
+                    <label for="industryother" class="form-label">{{#str}} industryotherquestion, auth_emailfirst {{/str}}</label>
+                    <input type="text" class="form-control {{#errors.industryother}}is-invalid{{/errors.industryother}}"
+                           id="industryother" name="industryother" value="{{industryother}}"
+                           {{#showindustryother}}required{{/showindustryother}}>
+                    {{#errors.industryother}}
+                        <div class="invalid-feedback">{{errors.industryother}}</div>
+                    {{/errors.industryother}}
+                </div>
+            {{/showindustry}}
+
+            {{#showentrepreneurmultiplier}}
+                <div class="mb-3">
+                    <fieldset>
+                        <legend class="form-label fs-6">{{#str}} entrepreneurmultiplierquestion, auth_emailfirst {{/str}}</legend>
+                        {{#multiplieroptions}}
+                            <div class="form-check">
+                                <input class="form-check-input {{#errors.entrepreneurmultiplier}}is-invalid{{/errors.entrepreneurmultiplier}}"
+                                       type="radio" name="entrepreneurmultiplier" id="entrepreneurmultiplier-{{value}}"
+                                       value="{{value}}" {{#selected}}checked{{/selected}} required>
+                                <label class="form-check-label" for="entrepreneurmultiplier-{{value}}">{{label}}</label>
+                            </div>
+                        {{/multiplieroptions}}
+                        {{#errors.entrepreneurmultiplier}}
+                            <div class="invalid-feedback d-block">{{errors.entrepreneurmultiplier}}</div>
+                        {{/errors.entrepreneurmultiplier}}
+                    </fieldset>
+                </div>
+            {{/showentrepreneurmultiplier}}
+
             <div class="mb-3">
                 <button class="btn btn-primary btn-lg w-100" type="submit">
                     {{#str}} proceed {{/str}}
@@ -132,3 +181,21 @@
         </div>
     {{/showcontact}}
 </div>
+
+{{#js}}
+    var industry = document.getElementById('industry');
+    var otherWrapper = document.getElementById('industryother-wrapper');
+    var otherInput = document.getElementById('industryother');
+    if (industry && otherWrapper && otherInput) {
+        var updateOther = function() {
+            var show = industry.value.trim().toLowerCase() === 'other';
+            otherWrapper.hidden = !show;
+            otherInput.required = show;
+            if (!show) {
+                otherInput.value = '';
+            }
+        };
+        industry.addEventListener('change', updateOther);
+        updateOther();
+    }
+{{/js}}

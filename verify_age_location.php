@@ -50,16 +50,20 @@ $cache = cache::make('core', 'presignup');
 $isminor = $cache->get('isminor');
 if ($isminor === 'yes') {
     redirect(new moodle_url('/login/digital_minor.php'));
-} else if ($isminor === 'no') {
+} else if ($isminor === 'no' && !empty($SESSION->auth_emailfirst_registration)) {
     redirect(new moodle_url('/auth/emailfirst/signup.php'));
 }
 
 $config = get_config('auth_emailfirst');
 $OUTPUT = $PAGE->get_renderer('core');
+$registrationfields = \auth_emailfirst\local\registration_fields::definitions();
 
 $errors = [];
 $age = '';
 $country = 'US';
+$industry = '';
+$industryother = '';
+$entrepreneurmultiplier = '';
 $errormessage = '';
 
 // Handle POST.
@@ -68,6 +72,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $age = optional_param('age', '', PARAM_INT);
     $country = optional_param('country', '', PARAM_ALPHA);
+    $industry = trim(optional_param('industry', '', PARAM_TEXT));
+    $industryother = trim(optional_param('industryother', '', PARAM_TEXT));
+    $entrepreneurmultiplier = trim(optional_param('entrepreneurmultiplier', '', PARAM_TEXT));
 
     // Validate.
     if (empty($age) || !is_numeric($age) || $age < 1) {
@@ -78,14 +85,46 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (empty($country)) {
         $errors['country'] = get_string('required');
     }
+    if (isset($registrationfields['industry'])) {
+        $industryoptions = \auth_emailfirst\local\registration_fields::industry_options();
+        if ($industry === '') {
+            $errors['industry'] = get_string('required');
+        } else if (!isset($industryoptions[$industry])) {
+            $errors['industry'] = get_string('invaliddata', 'error');
+        }
+        if (\auth_emailfirst\local\registration_fields::is_other($industry)) {
+            if ($industryother === '') {
+                $errors['industryother'] = get_string('required');
+            }
+        } else {
+            $industryother = '';
+        }
+    }
+    if (isset($registrationfields['entrepreneurmultiplier'])) {
+        $multiplieroptions = \auth_emailfirst\local\registration_fields::yes_no_values(
+            $registrationfields['entrepreneurmultiplier']
+        );
+        if (!in_array($entrepreneurmultiplier, $multiplieroptions, true)) {
+            $errors['entrepreneurmultiplier'] = $entrepreneurmultiplier === ''
+                ? get_string('required') : get_string('invaliddata', 'error');
+        }
+    }
 
     if (empty($errors)) {
         try {
             $minor = \core_auth\digital_consent::is_minor($age, $country);
             $cache->set('isminor', $minor ? 'yes' : 'no');
             if ($minor) {
+                unset($SESSION->auth_emailfirst_registration);
                 redirect(new moodle_url('/login/digital_minor.php'));
             } else {
+                $SESSION->auth_emailfirst_registration = [
+                    'agesignup' => (string)$age,
+                    'country' => $country,
+                    'industry' => $industry,
+                    'industryother' => $industryother,
+                    'entrepreneurmultiplier' => $entrepreneurmultiplier,
+                ];
                 redirect(new moodle_url('/auth/emailfirst/signup.php'));
             }
         } catch (moodle_exception $e) {
@@ -128,6 +167,32 @@ $ctx->loginurl = (new moodle_url('/login/index.php'))->out(false);
 $ctx->sesskey = sesskey();
 
 $ctx->age = s($age);
+$ctx->industryother = $industryother;
+$ctx->showindustry = isset($registrationfields['industry']);
+$ctx->showindustryother = \auth_emailfirst\local\registration_fields::is_other($industry);
+$ctx->showentrepreneurmultiplier = isset($registrationfields['entrepreneurmultiplier']);
+$ctx->industryoptions = [[
+    'value' => '',
+    'label' => get_string('industryplaceholder', 'auth_emailfirst'),
+    'selected' => $industry === '',
+]];
+foreach (\auth_emailfirst\local\registration_fields::industry_options() as $key => $label) {
+    $ctx->industryoptions[] = ['value' => $key, 'label' => $label, 'selected' => $industry === $key];
+}
+$multiplieroptions = \auth_emailfirst\local\registration_fields::yes_no_values(
+    $registrationfields['entrepreneurmultiplier'] ?? null
+);
+$ctx->multiplieroptions = [];
+foreach (['yes', 'no'] as $answer) {
+    if (isset($multiplieroptions[$answer])) {
+        $value = $multiplieroptions[$answer];
+        $ctx->multiplieroptions[] = [
+            'value' => $value,
+            'label' => get_string($answer),
+            'selected' => $entrepreneurmultiplier === $value,
+        ];
+    }
+}
 
 // Countries.
 $countries = get_string_manager()->get_list_of_countries();

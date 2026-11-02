@@ -84,10 +84,10 @@ if (isloggedin() && !isguestuser()) {
 if (\core_auth\digital_consent::is_age_digital_consent_verification_enabled()) {
     $cache = cache::make('core', 'presignup');
     $isminor = $cache->get('isminor');
-    if ($isminor === false) {
-        redirect(new moodle_url('/auth/emailfirst/verify_age_location.php'));
-    } else if ($isminor === 'yes') {
+    if ($isminor === 'yes') {
         redirect(new moodle_url('/login/digital_minor.php'));
+    } else if ($isminor === false || empty($SESSION->auth_emailfirst_registration)) {
+        redirect(new moodle_url('/auth/emailfirst/verify_age_location.php'));
     }
 }
 
@@ -104,7 +104,9 @@ $formdata = [
     'firstname' => '',
     'lastname' => '',
     'city' => !empty($CFG->defaultcity) ? $CFG->defaultcity : '',
-    'country' => !empty($CFG->country) ? $CFG->country : '',
+    'country' => !empty($SESSION->auth_emailfirst_registration['country'])
+        ? $SESSION->auth_emailfirst_registration['country']
+        : (!empty($CFG->country) ? $CFG->country : ''),
     'password' => '',
     'policyagreed' => 0,
     'profile_field_state' => '',
@@ -161,6 +163,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $user->{$fieldname} = $fieldvalue;
             }
         }
+        if (!empty($SESSION->auth_emailfirst_registration)) {
+            foreach (\auth_emailfirst\local\registration_fields::SHORTNAMES as $shortname) {
+                $user->{'profile_field_' . $shortname} = $SESSION->auth_emailfirst_registration[$shortname] ?? '';
+            }
+        }
 
         // Add required fields (secret, etc.).
         $user = signup_setup_new_user($user);
@@ -169,6 +176,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         core_login_post_signup_requests($user);
 
         // Create the user (this handles all DB operations).
+        unset($SESSION->auth_emailfirst_registration);
         $authplugin->user_signup($user, true);
         exit; // Ser_signup renders a notice and exits.
     }
@@ -589,8 +597,16 @@ function get_nigeria_profile_fields(): ?array {
  * @return array
  */
 function get_additional_signup_profile_fields(): array {
-    return array_values(array_filter(profile_get_signup_fields(), static function ($profilefield): bool {
-        return !in_array($profilefield->object->field->shortname, ['state', 'lga'], true);
+    global $SESSION;
+
+    $hasregistration = !empty($SESSION->auth_emailfirst_registration);
+    return array_values(array_filter(profile_get_signup_fields(), static function ($profilefield) use ($hasregistration): bool {
+        $shortname = $profilefield->object->field->shortname;
+        if (in_array($shortname, ['state', 'lga'], true)) {
+            return false;
+        }
+        return !$hasregistration
+            || !in_array($shortname, \auth_emailfirst\local\registration_fields::SHORTNAMES, true);
     }));
 }
 
