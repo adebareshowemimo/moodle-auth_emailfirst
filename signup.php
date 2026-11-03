@@ -111,6 +111,7 @@ $formdata = [
     'policyagreed' => 0,
     'profile_field_state' => '',
     'profile_field_lga' => '',
+    'referral_source' => '',
 ];
 
 // Add defaults for every other custom profile field enabled on signup.
@@ -140,6 +141,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $formdata['policyagreed'] = optional_param('policyagreed', 0, PARAM_INT);
         $formdata['profile_field_state'] = trim(optional_param('profile_field_state', '', PARAM_TEXT));
         $formdata['profile_field_lga'] = trim(optional_param('profile_field_lga', '', PARAM_TEXT));
+        $formdata['referral_source'] = trim(optional_param('referral_source', '', PARAM_ALPHANUMEXT));
         collect_additional_signup_profile_data($formdata);
 
         // Validate.
@@ -157,6 +159,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $user->country = $formdata['country'];
         $user->password = $formdata['password'];
         $user->policyagreed = $formdata['policyagreed'];
+        if (auth_emailfirst_referral_survey_enabled($config)) {
+            $user->referral_source = $formdata['referral_source'];
+        }
 
         foreach ($formdata as $fieldname => $fieldvalue) {
             if (strpos($fieldname, 'profile_field_') === 0) {
@@ -271,6 +276,15 @@ function validate_signup_data(array $data, $config): array {
 
     // Validate all other custom profile fields configured for signup.
     $errors += validate_additional_signup_profile_data($data);
+
+    if (auth_emailfirst_referral_survey_enabled($config)) {
+        $choices = \auth_emailfirst\local\referral_options::choices();
+        if ($data['referral_source'] === '') {
+            $errors['referral_source'] = get_string('referral_source_required', 'auth_emailfirst');
+        } else if (!array_key_exists($data['referral_source'], $choices)) {
+            $errors['referral_source'] = get_string('referral_source_invalid', 'auth_emailfirst');
+        }
+    }
 
     // Site policy agreement.
     $manager = new \core_privacy\local\sitepolicy\manager();
@@ -558,10 +572,36 @@ function build_signup_context(array $formdata, array $errors, $config, $output, 
     }
 
     // Render all remaining signup-enabled custom profile fields as structured context.
+    $ctx->showreferralsurvey = auth_emailfirst_referral_survey_enabled($config);
+    $ctx->referraloptions = [[
+        'value' => '',
+        'label' => get_string('referral_select', 'auth_emailfirst'),
+        'selected' => $formdata['referral_source'] === '',
+    ]];
+    if ($ctx->showreferralsurvey) {
+        foreach (\auth_emailfirst\local\referral_options::choices() as $key => $label) {
+            $ctx->referraloptions[] = [
+                'value' => $key,
+                'label' => $label,
+                'selected' => $formdata['referral_source'] === $key,
+            ];
+        }
+    }
     $ctx->profilefieldcategories = build_additional_profile_fields_context($formdata, $errors);
     $ctx->pluginfields = '';
 
     return $ctx;
+}
+
+/**
+ * Whether to ask the signup referral question.
+ *
+ * @param object $config Plugin configuration.
+ * @return bool
+ */
+function auth_emailfirst_referral_survey_enabled($config): bool {
+    $configured = !isset($config->showreferralsurvey) || !empty($config->showreferralsurvey);
+    return $configured && !empty(\auth_emailfirst\local\referral_options::choices());
 }
 
 /**

@@ -271,6 +271,13 @@ if ($ADMIN->fulltree) {
         PARAM_TEXT
     ));
 
+    $settings->add(new admin_setting_configcheckbox(
+        'auth_emailfirst/showreferralsurvey',
+        get_string('showreferralsurvey', 'auth_emailfirst'),
+        get_string('showreferralsurvey_desc', 'auth_emailfirst'),
+        1
+    ));
+
     // Enable multi-step signup wizard.
     $settings->add(new admin_setting_configcheckbox(
         'auth_emailfirst/enablemultistep',

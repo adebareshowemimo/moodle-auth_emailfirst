@@ -51,6 +51,8 @@
     * contacttext - Contact text,
     * multistep - Enable multi-step wizard,
     * profilefieldcategories - Structured signup-enabled custom profile fields,
+    * showreferralsurvey - Whether to show the referral question,
+    * referraloptions - Available referral choices with selected state,
     * pluginfields - Plugin hook fields HTML,
     * alreadyhaveaccount - Lang string,
     * showpasswordtoggle - Whether to show the password visibility toggle button,
@@ -302,6 +304,25 @@
                     {{/errors.profile_field_lga}}
                 </div>
             {{/shownigerialocations}}
+
+            {{#showreferralsurvey}}
+                <div class="mb-3">
+                    <label for="referral_source" class="form-label">
+                        {{#str}} referral_source, auth_emailfirst {{/str}}
+                        <abbr class="text-danger" title="{{#str}}required{{/str}}">*</abbr>
+                    </label>
+                    <select name="referral_source" id="referral_source"
+                            class="form-select form-select-lg {{#errors.referral_source}}is-invalid{{/errors.referral_source}}"
+                            required>
+                        {{#referraloptions}}
+                            <option value="{{value}}" {{#selected}}selected{{/selected}}>{{label}}</option>
+                        {{/referraloptions}}
+                    </select>
+                    {{#errors.referral_source}}
+                        <div class="invalid-feedback d-block">{{errors.referral_source}}</div>
+                    {{/errors.referral_source}}
+                </div>
+            {{/showreferralsurvey}}
 
             {{! Signup-enabled custom profile fields rendered from Moodle field definitions. }}
             {{#profilefieldcategories}}

@@ -48,19 +48,7 @@ $PAGE->set_title(get_string('referral_report', 'auth_emailfirst'));
 $PAGE->set_heading(get_string('referral_report', 'auth_emailfirst'));
 
 // Referral source labels.
-$referrallabels = [
-    'search_engine' => get_string('referral_search_engine', 'auth_emailfirst'),
-    'social_media' => get_string('referral_social_media', 'auth_emailfirst'),
-    'friend_family' => get_string('referral_friend_family', 'auth_emailfirst'),
-    'colleague' => get_string('referral_colleague', 'auth_emailfirst'),
-    'online_ad' => get_string('referral_online_ad', 'auth_emailfirst'),
-    'blog_article' => get_string('referral_blog_article', 'auth_emailfirst'),
-    'email_newsletter' => get_string('referral_email_newsletter', 'auth_emailfirst'),
-    'event_conference' => get_string('referral_event_conference', 'auth_emailfirst'),
-    'youtube' => get_string('referral_youtube', 'auth_emailfirst'),
-    'podcast' => get_string('referral_podcast', 'auth_emailfirst'),
-    'other' => get_string('referral_other', 'auth_emailfirst'),
-];
+$referrallabels = \auth_emailfirst\local\referral_options::choices(false);
 
 // Build table.
 $table = new \flexible_table('auth_emailfirst_referral_report');
