@@ -9,6 +9,7 @@
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
         <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="FK to user.id"/>
         <FIELD NAME="referral_source" TYPE="text" NOTNULL="true" SEQUENCE="false" COMMENT="How the user heard about the site"/>
+        <FIELD NAME="referral_other" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Explanation when referral source is Other"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>
       <KEYS>

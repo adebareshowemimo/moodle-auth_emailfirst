@@ -1,4 +1,10 @@
-# Email First Authentication v1.3.3
+# Email First Authentication v1.3.4
+
+- Show a required explanation field when a learner selects Other as the referral source.
+- Save the explanation separately and include it in the referral report and privacy export.
+- Moodle plugin build: `2026111501`.
+
+## v1.3.3
 
 - Restore the required “How did you hear about Starter U?” dropdown on account signup.
 - Use existing site referral choices when available, with the original 20 choices as a fallback.

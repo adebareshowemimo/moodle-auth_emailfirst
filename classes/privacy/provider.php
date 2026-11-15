@@ -48,6 +48,7 @@ class provider implements
         $collection->add_database_table('auth_emailfirst_survey', [
             'userid' => 'privacy:metadata:auth_emailfirst_survey:userid',
             'referral_source' => 'privacy:metadata:auth_emailfirst_survey:referral_source',
+            'referral_other' => 'privacy:metadata:auth_emailfirst_survey:referral_other',
             'timecreated' => 'privacy:metadata:auth_emailfirst_survey:timecreated',
         ], 'privacy:metadata:auth_emailfirst_survey');
 
@@ -137,6 +138,7 @@ class provider implements
         if ($record) {
             $data = (object) [
                 'referral_source' => $record->referral_source,
+                'referral_other' => $record->referral_other,
                 'timecreated' => \core_privacy\local\request\transform::datetime($record->timecreated),
             ];
 

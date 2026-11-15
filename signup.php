@@ -112,6 +112,7 @@ $formdata = [
     'profile_field_state' => '',
     'profile_field_lga' => '',
     'referral_source' => '',
+    'referral_other' => '',
 ];
 
 // Add defaults for every other custom profile field enabled on signup.
@@ -142,6 +143,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $formdata['profile_field_state'] = trim(optional_param('profile_field_state', '', PARAM_TEXT));
         $formdata['profile_field_lga'] = trim(optional_param('profile_field_lga', '', PARAM_TEXT));
         $formdata['referral_source'] = trim(optional_param('referral_source', '', PARAM_ALPHANUMEXT));
+        $formdata['referral_other'] = trim(optional_param('referral_other', '', PARAM_TEXT));
         collect_additional_signup_profile_data($formdata);
 
         // Validate.
@@ -161,6 +163,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $user->policyagreed = $formdata['policyagreed'];
         if (auth_emailfirst_referral_survey_enabled($config)) {
             $user->referral_source = $formdata['referral_source'];
+            $user->referral_other = $formdata['referral_source'] === 'other' ? $formdata['referral_other'] : '';
         }
 
         foreach ($formdata as $fieldname => $fieldvalue) {
@@ -283,6 +286,12 @@ function validate_signup_data(array $data, $config): array {
             $errors['referral_source'] = get_string('referral_source_required', 'auth_emailfirst');
         } else if (!array_key_exists($data['referral_source'], $choices)) {
             $errors['referral_source'] = get_string('referral_source_invalid', 'auth_emailfirst');
+        } else if ($data['referral_source'] === 'other') {
+            if ($data['referral_other'] === '') {
+                $errors['referral_other'] = get_string('referral_other_required', 'auth_emailfirst');
+            } else if (core_text::strlen($data['referral_other']) > 255) {
+                $errors['referral_other'] = get_string('referral_other_toolong', 'auth_emailfirst');
+            }
         }
     }
 
@@ -573,6 +582,8 @@ function build_signup_context(array $formdata, array $errors, $config, $output, 
 
     // Render all remaining signup-enabled custom profile fields as structured context.
     $ctx->showreferralsurvey = auth_emailfirst_referral_survey_enabled($config);
+    $ctx->referralother = $formdata['referral_other'];
+    $ctx->showreferralother = $formdata['referral_source'] === 'other';
     $ctx->referraloptions = [[
         'value' => '',
         'label' => get_string('referral_select', 'auth_emailfirst'),

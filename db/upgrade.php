@@ -29,7 +29,7 @@
  * @return bool
  */
 function xmldb_auth_emailfirst_upgrade(int $oldversion): bool {
-    global $CFG;
+    global $CFG, $DB;
 
     if ($oldversion < 2026081800) {
         require_once($CFG->dirroot . '/auth/emailfirst/lib.php');
@@ -41,6 +41,16 @@ function xmldb_auth_emailfirst_upgrade(int $oldversion): bool {
     if ($oldversion < 2026081801) {
         // No schema change. The savepoint refreshes plugin metadata and settings caches.
         upgrade_plugin_savepoint(true, 2026081801, 'auth', 'emailfirst');
+    }
+
+    if ($oldversion < 2026111501) {
+        $dbman = $DB->get_manager();
+        $table = new xmldb_table('auth_emailfirst_survey');
+        $field = new xmldb_field('referral_other', XMLDB_TYPE_TEXT, null, null, null, null, null, 'referral_source');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        upgrade_plugin_savepoint(true, 2026111501, 'auth', 'emailfirst');
     }
 
     return true;

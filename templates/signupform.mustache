@@ -53,6 +53,8 @@
     * profilefieldcategories - Structured signup-enabled custom profile fields,
     * showreferralsurvey - Whether to show the referral question,
     * referraloptions - Available referral choices with selected state,
+    * referralother - Explanation when Other is selected,
+    * showreferralother - Whether the explanation field is initially visible,
     * pluginfields - Plugin hook fields HTML,
     * alreadyhaveaccount - Lang string,
     * showpasswordtoggle - Whether to show the password visibility toggle button,
@@ -322,6 +324,18 @@
                         <div class="invalid-feedback d-block">{{errors.referral_source}}</div>
                     {{/errors.referral_source}}
                 </div>
+                <div class="mb-3" id="referral-other-wrapper" {{^showreferralother}}hidden{{/showreferralother}}>
+                    <label for="referral_other" class="form-label">
+                        {{#str}} referral_other_explanation, auth_emailfirst {{/str}}
+                        <abbr class="text-danger" title="{{#str}}required{{/str}}">*</abbr>
+                    </label>
+                    <input type="text" name="referral_other" id="referral_other" maxlength="255"
+                           value="{{referralother}}" {{#showreferralother}}required{{/showreferralother}}
+                           class="form-control form-control-lg {{#errors.referral_other}}is-invalid{{/errors.referral_other}}">
+                    {{#errors.referral_other}}
+                        <div class="invalid-feedback d-block">{{errors.referral_other}}</div>
+                    {{/errors.referral_other}}
+                </div>
             {{/showreferralsurvey}}
 
             {{! Signup-enabled custom profile fields rendered from Moodle field definitions. }}
@@ -446,6 +460,26 @@
 </div>
 
 {{#js}}
+    {{#showreferralsurvey}}
+    (function() {
+        var source = document.getElementById('referral_source');
+        var wrapper = document.getElementById('referral-other-wrapper');
+        var explanation = document.getElementById('referral_other');
+        if (!source || !wrapper || !explanation) {
+            return;
+        }
+        var updateOther = function() {
+            var show = source.value === 'other';
+            wrapper.hidden = !show;
+            explanation.required = show;
+            if (!show) {
+                explanation.value = '';
+            }
+        };
+        source.addEventListener('change', updateOther);
+        updateOther();
+    })();
+    {{/showreferralsurvey}}
     require(['core_form/submit'], function(Submit) {
         Submit.init("signupbtn");
     });

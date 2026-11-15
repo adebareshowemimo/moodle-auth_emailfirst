@@ -52,17 +52,19 @@ $referrallabels = \auth_emailfirst\local\referral_options::choices(false);
 
 // Build table.
 $table = new \flexible_table('auth_emailfirst_referral_report');
-$table->define_columns(['fullname', 'email', 'referral_source', 'timecreated']);
+$table->define_columns(['fullname', 'email', 'referral_source', 'referral_other', 'timecreated']);
 $table->define_headers([
     get_string('report_fullname', 'auth_emailfirst'),
     get_string('report_email', 'auth_emailfirst'),
     get_string('report_referral', 'auth_emailfirst'),
+    get_string('referral_other_explanation', 'auth_emailfirst'),
     get_string('report_date', 'auth_emailfirst'),
 ]);
 
 $table->define_baseurl($baseurl);
 $table->sortable(true, 'timecreated', SORT_DESC);
 $table->no_sorting('fullname');
+$table->no_sorting('referral_other');
 $table->set_attribute('class', 'generaltable generalbox');
 $table->set_attribute('id', 'referral-report-table');
 $table->pageable(true);
@@ -114,7 +116,7 @@ $totalcount = $DB->count_records_sql($countsql, $params);
 $sort = $table->get_sql_sort();
 $orderby = $sort ? "ORDER BY $sort" : 'ORDER BY s.timecreated DESC';
 
-$sql = "SELECT s.id, s.referral_source, s.timecreated,
+$sql = "SELECT s.id, s.referral_source, s.referral_other, s.timecreated,
                u.id AS userid, u.username, u.email, u.firstname, u.lastname,
                u.firstnamephonetic, u.lastnamephonetic, u.middlename, u.alternatename
           FROM {auth_emailfirst_survey} s
@@ -247,6 +249,7 @@ foreach ($records as $record) {
         fullname($record),
         s($record->email),
         s($sourcelabel),
+        s($record->referral_other ?? ''),
         userdate($record->timecreated, get_string('strftimedatetimeshort', 'langconfig')),
     ];
     $table->add_data($row);

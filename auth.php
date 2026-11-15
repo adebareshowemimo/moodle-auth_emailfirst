@@ -345,6 +345,7 @@ class auth_plugin_emailfirst extends auth_plugin_base {
             $record = new stdClass();
             $record->userid = $user->id;
             $record->referral_source = $user->referral_source;
+            $record->referral_other = $user->referral_other ?? null;
             $record->timecreated = time();
             $DB->insert_record('auth_emailfirst_survey', $record);
         }
