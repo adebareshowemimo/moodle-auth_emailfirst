@@ -211,8 +211,48 @@ body#page-auth-emailfirst-verify_age_location #page-wrapper {
 /* ── V2 Custom signup form ── */
 
 .auth-emailfirst-signupform {
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
     max-width: 500px;
     margin: 2rem auto;
+}
+
+/* Theme signup widths must not push the custom form outside a mobile login card. */
+@media (max-width: 767.98px) {
+    body#page-auth-emailfirst-signup .login-wrapper,
+    body#page-auth-emailfirst-signup .login-container {
+        box-sizing: border-box;
+        width: 100%;
+        min-width: 0;
+        max-width: 100%;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    body#page-auth-emailfirst-signup .login-container {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+
+    body#page-auth-emailfirst-signup .signupform.auth-emailfirst-signupform {
+        box-sizing: border-box;
+        width: 100%;
+        min-width: 0;
+        max-width: 500px;
+        margin: 1rem auto;
+        padding-left: 0;
+        padding-right: 0;
+        overflow-wrap: anywhere;
+    }
+
+    body#page-auth-emailfirst-signup .auth-emailfirst-signupform fieldset,
+    body#page-auth-emailfirst-signup .auth-emailfirst-signupform .input-group,
+    body#page-auth-emailfirst-signup .auth-emailfirst-signupform .form-control,
+    body#page-auth-emailfirst-signup .auth-emailfirst-signupform select {
+        min-width: 0;
+        max-width: 100%;
+    }
 }
 
 .auth-emailfirst-signupform .form-control-lg,

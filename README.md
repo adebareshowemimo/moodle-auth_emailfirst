@@ -1,6 +1,6 @@
 # Email First Authentication
 
-Current release: **v1.3.4**
+Current release: **v1.3.5**
 
 Email First provides Starter U's branded login and registration pages, with optional navigation buttons for signed-out visitors.
 
@@ -10,4 +10,4 @@ The first registration screen collects age, industry, and the entrepreneurship m
 
 The account signup form also asks how the learner heard about Starter U. Selecting Other reveals a required explanation field. The dropdown uses existing site choices when available, and the source and explanation appear in the referral survey report.
 
-Install or update the plugin by uploading the `emailfirst-v1.3.4.zip` archive through Moodle's plugin installer, then complete Moodle's upgrade process.
+Install or update the plugin by uploading the `emailfirst-v1.3.5.zip` archive through Moodle's plugin installer, then complete Moodle's upgrade process.

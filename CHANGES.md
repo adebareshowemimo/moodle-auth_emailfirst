@@ -1,4 +1,10 @@
-# Email First Authentication v1.3.4
+# Email First Authentication v1.3.5
+
+- Keep the account registration form and login card within the mobile viewport, with consistent side padding.
+- Allow form controls and long instructions to shrink and wrap without clipping.
+- Moodle plugin build: `2026112200`.
+
+## v1.3.4
 
 - Show a required explanation field when a learner selects Other as the referral source.
 - Save the explanation separately and include it in the referral report and privacy export.
